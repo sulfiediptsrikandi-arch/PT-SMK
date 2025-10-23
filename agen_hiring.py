@@ -205,7 +205,7 @@ DEFAULT_ROLE_REQUIREMENTS: Dict[str, str] = {
 
 # --- FUNGSI UNTUK MENGATUR TEMA ---
 def set_blue_gradient_theme():
-    """Simple Blue Gradient Theme - FIXED TEXT VISIBILITY"""
+    """Blue Gradient Theme - MAXIMUM TEXT VISIBILITY"""
     st.markdown("""
         <style>
         /* === BACKGROUND === */
@@ -219,40 +219,70 @@ def set_blue_gradient_theme():
             background-color: #1a4d6d !important;
         }
         
-        /* === SIDEBAR - FIX TEXT COLOR === */
+        /* === SIDEBAR - MAXIMUM SPECIFICITY === */
         section[data-testid="stSidebar"] {
             background-color: rgba(26, 77, 109, 0.95) !important;
             border-right: 2px solid #4a90c4;
         }
         
-        /* CRITICAL: Sidebar text must be LIGHT/WHITE */
-        section[data-testid="stSidebar"] * {
-            color: #e8f4f8 !important;
+        /* SUPER STRONG: ALL sidebar text WHITE */
+        section[data-testid="stSidebar"] *,
+        section[data-testid="stSidebar"] div,
+        section[data-testid="stSidebar"] span,
+        section[data-testid="stSidebar"] p,
+        section[data-testid="stSidebar"] label,
+        section[data-testid="stSidebar"] button,
+        section[data-testid="stSidebar"] .stMarkdown,
+        section[data-testid="stSidebar"] .stMarkdown *,
+        section[data-testid="stSidebar"] .element-container,
+        section[data-testid="stSidebar"] .element-container * {
+            color: #ffffff !important;
         }
         
+        /* Headers in sidebar - BRIGHT CYAN */
         section[data-testid="stSidebar"] h1,
         section[data-testid="stSidebar"] h2,
-        section[data-testid="stSidebar"] h3 {
+        section[data-testid="stSidebar"] h3,
+        section[data-testid="stSidebar"] .stMarkdown h1,
+        section[data-testid="stSidebar"] .stMarkdown h2,
+        section[data-testid="stSidebar"] .stMarkdown h3 {
             color: #a8d8ea !important;
             font-weight: 700 !important;
         }
         
-        section[data-testid="stSidebar"] label {
+        /* Expander headers in sidebar - WHITE */
+        section[data-testid="stSidebar"] .streamlit-expanderHeader,
+        section[data-testid="stSidebar"] .streamlit-expanderHeader *,
+        section[data-testid="stSidebar"] .streamlit-expanderHeader p,
+        section[data-testid="stSidebar"] .streamlit-expanderHeader span {
             color: #ffffff !important;
             font-weight: 600 !important;
         }
         
-        section[data-testid="stSidebar"] p {
-            color: #d4e8f5 !important;
+        /* Input labels in sidebar - WHITE */
+        section[data-testid="stSidebar"] .stTextInput label,
+        section[data-testid="stSidebar"] .stSelectbox label,
+        section[data-testid="stSidebar"] .stCheckbox label {
+            color: #ffffff !important;
+            font-weight: 600 !important;
         }
         
-        /* === MAIN CONTENT TEXT - DARK ON LIGHT === */
+        /* Buttons in sidebar - ensure visibility */
+        section[data-testid="stSidebar"] .stButton button {
+            color: #ffffff !important;
+            background: rgba(74, 144, 196, 0.3) !important;
+            border: 1px solid #4a90c4 !important;
+        }
+        
+        /* === MAIN CONTENT === */
         .main h1, .main h2, .main h3 {
             color: #1a4d6d !important;
             font-weight: 700 !important;
         }
         
-        .main p {
+        .main p,
+        .main div,
+        .main span {
             color: #0d2635 !important;
         }
         
@@ -261,38 +291,39 @@ def set_blue_gradient_theme():
             font-weight: 600 !important;
         }
         
-        /* === EXPANDER - FIX VISIBILITY === */
-        .streamlit-expanderHeader {
-            background: rgba(26, 77, 109, 0.85) !important;
-            backdrop-filter: blur(10px);
+        /* === EXPANDER IN MAIN AREA === */
+        .main .streamlit-expanderHeader {
+            background: rgba(26, 77, 109, 0.9) !important;
             border: 2px solid #4a90c4 !important;
             border-radius: 8px !important;
             padding: 14px 18px !important;
         }
         
-        /* CRITICAL: Expander header text WHITE */
-        .streamlit-expanderHeader * {
+        .main .streamlit-expanderHeader *,
+        .main .streamlit-expanderHeader p,
+        .main .streamlit-expanderHeader span {
             color: #ffffff !important;
             font-weight: 600 !important;
         }
         
-        /* Expander content background - LIGHT */
-        .streamlit-expanderContent {
+        .main .streamlit-expanderContent {
             background: rgba(255, 255, 255, 0.95) !important;
             border: 2px solid #4a90c4;
             border-top: none;
             border-radius: 0 0 8px 8px;
-            padding: 16px !important;
+            padding: 20px !important;
         }
         
-        /* Expander content text - DARK */
-        .streamlit-expanderContent * {
+        .main .streamlit-expanderContent *,
+        .main .streamlit-expanderContent p,
+        .main .streamlit-expanderContent li,
+        .main .streamlit-expanderContent span {
             color: #0d2635 !important;
         }
         
         /* === BUTTONS === */
         .stButton > button[kind="primary"] {
-            background: linear-gradient(135deg, #1a4d6d 0%, #4a90c4 100%);
+            background: linear-gradient(135deg, #1a4d6d 0%, #4a90c4 100%) !important;
             color: white !important;
             border: 2px solid #4a90c4;
             border-radius: 8px;
@@ -302,13 +333,13 @@ def set_blue_gradient_theme():
         }
         
         .stButton > button[kind="primary"]:hover {
-            background: linear-gradient(135deg, #2a5d7d 0%, #5aa0d4 100%);
+            background: linear-gradient(135deg, #2a5d7d 0%, #5aa0d4 100%) !important;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(26, 77, 109, 0.3);
         }
         
         .stButton > button[kind="secondary"] {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.95) !important;
             color: #1a4d6d !important;
             border: 2px solid #4a90c4;
             border-radius: 8px;
@@ -317,14 +348,14 @@ def set_blue_gradient_theme():
         }
         
         .stButton > button[kind="secondary"]:hover {
-            background: white;
+            background: white !important;
             box-shadow: 0 4px 12px rgba(74, 144, 196, 0.3);
             transform: translateY(-2px);
         }
         
         /* === DOWNLOAD BUTTON === */
         .stDownloadButton > button {
-            background: linear-gradient(135deg, #4a90c4 0%, #7ab5d9 100%);
+            background: linear-gradient(135deg, #4a90c4 0%, #7ab5d9 100%) !important;
             color: white !important;
             border: none;
             border-radius: 8px;
@@ -333,13 +364,13 @@ def set_blue_gradient_theme():
         }
         
         .stDownloadButton > button:hover {
-            background: linear-gradient(135deg, #5aa0d4 0%, #8ac5e9 100%);
+            background: linear-gradient(135deg, #5aa0d4 0%, #8ac5e9 100%) !important;
             transform: translateY(-2px);
         }
         
         /* === METRICS === */
         div[data-testid="stMetric"] {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.95) !important;
             border: 2px solid #4a90c4;
             border-radius: 12px;
             padding: 20px;
@@ -359,7 +390,7 @@ def set_blue_gradient_theme():
         
         /* === TABS === */
         .stTabs [data-baseweb="tab"] {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.8) !important;
             border: 2px solid rgba(74, 144, 196, 0.3);
             border-radius: 8px 8px 0 0;
             color: #1a4d6d !important;
@@ -368,7 +399,7 @@ def set_blue_gradient_theme():
         }
         
         .stTabs [data-baseweb="tab"]:hover {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.95) !important;
             border-color: #4a90c4;
         }
         
@@ -381,13 +412,19 @@ def set_blue_gradient_theme():
         
         /* === INPUTS === */
         .stTextInput > div > div > input,
-        .stTextArea > div > div > textarea,
-        .stSelectbox > div > div {
+        .stTextArea > div > div > textarea {
             background: rgba(255, 255, 255, 0.95) !important;
             border: 2px solid #4a90c4 !important;
             border-radius: 8px !important;
             color: #0d2635 !important;
             font-weight: 500 !important;
+        }
+        
+        .stSelectbox > div > div {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 2px solid #4a90c4 !important;
+            border-radius: 8px !important;
+            color: #0d2635 !important;
         }
         
         .stTextInput > div > div > input:focus,
@@ -396,17 +433,9 @@ def set_blue_gradient_theme():
             box-shadow: 0 0 0 2px rgba(74, 144, 196, 0.2) !important;
         }
         
-        /* Input labels */
-        .stTextInput label,
-        .stTextArea label,
-        .stSelectbox label {
-            color: #1a4d6d !important;
-            font-weight: 600 !important;
-        }
-        
         /* === FILE UPLOADER === */
         [data-testid="stFileUploader"] {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.9) !important;
             border: 2px dashed #4a90c4;
             border-radius: 12px;
             padding: 24px;
@@ -423,13 +452,15 @@ def set_blue_gradient_theme():
             border-radius: 8px;
         }
         
-        .stAlert p {
+        .stAlert p,
+        .stAlert div,
+        .stAlert span {
             color: #0d2635 !important;
         }
         
         /* === DATAFRAME === */
         [data-testid="stDataFrame"] {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.95) !important;
             border: 2px solid #4a90c4;
             border-radius: 8px;
         }
@@ -441,16 +472,10 @@ def set_blue_gradient_theme():
             font-weight: 500 !important;
         }
         
-        /* === CHAT MESSAGES === */
-        .stChatMessage {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #4a90c4;
-            border-radius: 12px;
-            padding: 16px;
-        }
-        
-        .stChatMessage p {
-            color: #0d2635 !important;
+        /* Override for sidebar checkboxes */
+        section[data-testid="stSidebar"] .stCheckbox label,
+        section[data-testid="stSidebar"] .stRadio label {
+            color: #ffffff !important;
         }
         
         /* === SCROLLBAR === */
