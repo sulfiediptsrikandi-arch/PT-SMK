@@ -204,379 +204,260 @@ DEFAULT_ROLE_REQUIREMENTS: Dict[str, str] = {
 
 
 # --- FUNGSI UNTUK MENGATUR TEMA ---
-def set_soft_gradient_theme():
-    """Soft Cyan Gradient Theme - Inspired by modern mobile UI design"""
+def set_hud_futuristic_theme():
+    """HUD Futuristic Interface Theme - Dark Blue with Cyan & Orange Accents"""
     st.markdown("""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap');
         
-        /* === GLOBAL BACKGROUND - SOFT GRADIENT === */
+        /* === GLOBAL BACKGROUND - DARK HUD === */
         .stApp {
-            background: linear-gradient(135deg, #5dced8 0%, #88d5dd 25%, #a5dfe6 50%, #7ecbd5 75%, #5dced8 100%);
-            background-size: 400% 400%;
-            animation: gradientFlow 15s ease infinite;
-            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #0d1b2a 50%, #081420 100%);
+            font-family: 'Rajdhani', sans-serif;
+            color: #e0f4ff !important;
         }
         
-        @keyframes gradientFlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* Remove white header area - CRITICAL FIX */
+        header[data-testid="stHeader"] {
+            background: rgba(10, 22, 40, 0.95) !important;
+            backdrop-filter: blur(10px);
         }
         
-        /* === SIDEBAR - GLASSMORPHISM === */
+        /* === SIDEBAR - HUD PANEL === */
         section[data-testid="stSidebar"] {
-            background: rgba(255, 255, 255, 0.25) !important;
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-right: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            background: linear-gradient(180deg, #0a1628 0%, #0d1b2a 100%) !important;
+            border-right: 2px solid #00d9ff;
+            box-shadow: 
+                0 0 20px rgba(0, 217, 255, 0.3),
+                inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        section[data-testid="stSidebar"]::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, #00d9ff 50%, transparent 100%);
+            box-shadow: 0 0 10px #00d9ff;
         }
         
         section[data-testid="stSidebar"] * {
-            color: #1a5f6f !important;
+            color: #e0f4ff !important;
         }
         
         section[data-testid="stSidebar"] h1,
         section[data-testid="stSidebar"] h2,
         section[data-testid="stSidebar"] h3 {
-            color: #0d4855 !important;
-            font-weight: 600;
+            color: #00d9ff !important;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.8);
         }
         
         /* === TYPOGRAPHY === */
-        * {
-            font-family: 'Inter', sans-serif;
-        }
-        
         h1, h2, h3 {
-            font-family: 'Poppins', sans-serif !important;
+            font-family: 'Orbitron', sans-serif !important;
             font-weight: 700 !important;
-            color: #0d4855 !important;
-            letter-spacing: -0.5px;
-            text-shadow: 0 2px 4px rgba(13, 72, 85, 0.1);
+            color: #00d9ff !important;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 
+                0 0 10px rgba(0, 217, 255, 0.8),
+                0 0 20px rgba(0, 217, 255, 0.5);
         }
         
-        h1 {
-            font-size: 2.5rem !important;
-        }
-        
-        /* Main content text - DARK for visibility */
-        .main .stMarkdown,
-        .main p,
-        .main span,
-        .main div {
-            color: #1a5f6f !important;
+        .main p {
+            color: #b8d4e8 !important;
         }
         
         .main label {
-            color: #0d4855 !important;
+            color: #00d9ff !important;
             font-weight: 600;
+            text-transform: uppercase;
         }
         
-        /* === PRIMARY BUTTONS - SOFT MODERN === */
+        /* === PRIMARY BUTTONS - HUD STYLE === */
         .stButton > button[kind="primary"] {
-            background: linear-gradient(135deg, #4db8c4 0%, #3a9faa 100%);
-            color: white !important;
-            border: none;
-            border-radius: 12px;
-            padding: 12px 28px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 1rem;
+            background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+            color: #0a1628 !important;
+            border: 2px solid #00d9ff;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 12px 32px;
             box-shadow: 
-                0 4px 15px rgba(61, 159, 170, 0.4),
+                0 0 20px rgba(0, 217, 255, 0.5),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
         }
         
         .stButton > button[kind="primary"]:hover {
-            background: linear-gradient(135deg, #3a9faa 0%, #2d7f8a 100%);
             box-shadow: 
-                0 6px 20px rgba(61, 159, 170, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+                0 0 30px rgba(0, 217, 255, 0.8),
+                0 0 50px rgba(0, 217, 255, 0.5);
             transform: translateY(-2px);
-        }
-        
-        .stButton > button[kind="primary"]:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(61, 159, 170, 0.3);
         }
         
         /* === SECONDARY BUTTONS === */
         .stButton > button[kind="secondary"] {
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(10px);
-            color: #1a5f6f !important;
-            border: 2px solid rgba(93, 206, 216, 0.3);
-            border-radius: 12px;
-            padding: 10px 24px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
+            background: rgba(13, 27, 42, 0.8);
+            color: #00d9ff !important;
+            border: 2px solid #00d9ff;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
         }
         
-        .stButton > button[kind="secondary"]:hover {
-            background: rgba(255, 255, 255, 0.7);
-            border-color: rgba(93, 206, 216, 0.6);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-            transform: translateY(-2px);
-        }
-        
-        /* === DOWNLOAD BUTTON === */
+        /* === DOWNLOAD BUTTON - ORANGE ACCENT === */
         .stDownloadButton > button {
-            background: linear-gradient(135deg, #f59e42 0%, #f57f42 100%);
-            color: white !important;
-            border: none;
-            border-radius: 12px;
-            padding: 12px 28px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            box-shadow: 
-                0 4px 15px rgba(245, 126, 66, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #ff9933 0%, #ff7700 100%);
+            color: #0a1628 !important;
+            border: 2px solid #ff9933;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(255, 153, 51, 0.5);
         }
         
         .stDownloadButton > button:hover {
-            background: linear-gradient(135deg, #f57f42 0%, #f55f42 100%);
-            box-shadow: 0 6px 20px rgba(245, 126, 66, 0.5);
+            box-shadow: 0 0 30px rgba(255, 153, 51, 0.8);
             transform: translateY(-2px);
         }
         
-        /* === METRICS - GLASSMORPHISM CARDS === */
+        /* === METRICS - HUD DISPLAY === */
         div[data-testid="stMetric"] {
-            background: rgba(255, 255, 255, 0.4) !important;
-            backdrop-filter: blur(15px) saturate(180%);
-            -webkit-backdrop-filter: blur(15px) saturate(180%);
+            background: rgba(13, 27, 42, 0.8) !important;
+            border: 2px solid #00d9ff;
+            border-radius: 8px;
             padding: 24px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 
-                0 8px 32px rgba(31, 38, 135, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            transition: all 0.3s ease;
+                0 0 30px rgba(0, 217, 255, 0.3),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
         }
         
-        div[data-testid="stMetric"]:hover {
-            background: rgba(255, 255, 255, 0.5) !important;
-            box-shadow: 
-                0 12px 40px rgba(31, 38, 135, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9);
-            transform: translateY(-4px);
+        div[data-testid="stMetric"]::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 100%;
+            background: linear-gradient(180deg, #ff9933 0%, transparent 100%);
+            box-shadow: 0 0 10px #ff9933;
         }
         
         [data-testid="stMetricValue"] {
-            font-size: 3rem !important;
-            font-weight: 800 !important;
-            font-family: 'Poppins', sans-serif !important;
-            color: #0d4855 !important;
-            text-shadow: 0 2px 4px rgba(13, 72, 85, 0.1);
+            font-size: 3.5rem !important;
+            font-family: 'Orbitron', sans-serif !important;
+            color: #00d9ff !important;
+            text-shadow: 0 0 15px rgba(0, 217, 255, 1);
         }
         
         [data-testid="stMetricLabel"] {
-            font-size: 1rem !important;
-            font-weight: 500 !important;
-            color: #1a5f6f !important;
+            color: #b8d4e8 !important;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 2px;
         }
         
-        /* === TABS - MODERN STYLE === */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 12px;
-            background: transparent;
-        }
-        
+        /* === TABS - HUD INTERFACE === */
         .stTabs [data-baseweb="tab"] {
-            background: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 12px 12px 0 0;
-            color: #1a5f6f !important;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
+            background: rgba(13, 27, 42, 0.6);
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            color: #b8d4e8 !important;
+            text-transform: uppercase;
             padding: 14px 28px;
-            transition: all 0.3s ease;
         }
         
         .stTabs [data-baseweb="tab"]:hover {
-            background: rgba(255, 255, 255, 0.45);
-            transform: translateY(-2px);
+            border-color: #00d9ff;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
         }
         
         .stTabs [data-baseweb="tab"][aria-selected="true"] {
-            background: rgba(255, 255, 255, 0.7) !important;
-            border: 2px solid rgba(93, 206, 216, 0.6);
-            color: #0d4855 !important;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(31, 38, 135, 0.15);
+            background: rgba(0, 217, 255, 0.15) !important;
+            border-color: #00d9ff !important;
+            color: #00d9ff !important;
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.4);
         }
         
-        /* === FILE UPLOADER - GLASSMORPHISM === */
+        /* === FILE UPLOADER === */
         [data-testid="stFileUploader"] {
-            background: rgba(255, 255, 255, 0.35) !important;
-            backdrop-filter: blur(15px);
-            border: 2px dashed rgba(93, 206, 216, 0.5);
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 4px 16px rgba(31, 38, 135, 0.1);
-            transition: all 0.3s ease;
+            background: rgba(13, 27, 42, 0.6) !important;
+            border: 2px dashed rgba(0, 217, 255, 0.5);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
         }
         
-        [data-testid="stFileUploader"]:hover {
-            background: rgba(255, 255, 255, 0.45) !important;
-            border-color: rgba(93, 206, 216, 0.7);
-            box-shadow: 0 8px 24px rgba(31, 38, 135, 0.15);
-        }
-        
-        [data-testid="stFileUploader"] label {
-            color: #0d4855 !important;
-            font-weight: 600;
-        }
-        
-        /* === EXPANDERS === */
-        .streamlit-expanderHeader {
-            background: rgba(255, 255, 255, 0.4) !important;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 12px;
-            color: #0d4855 !important;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            padding: 12px 16px;
-            box-shadow: 0 2px 8px rgba(31, 38, 135, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .streamlit-expanderHeader:hover {
-            background: rgba(255, 255, 255, 0.5) !important;
-            box-shadow: 0 4px 12px rgba(31, 38, 135, 0.15);
-        }
-        
-        /* === TEXT INPUTS - SOFT GLASSMORPHISM === */
+        /* === TEXT INPUTS === */
         .stTextInput > div > div > input,
         .stTextArea > div > div > textarea {
-            background: rgba(255, 255, 255, 0.6) !important;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(93, 206, 216, 0.3) !important;
-            border-radius: 12px !important;
-            color: #0d4855 !important;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-            padding: 12px 16px;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-        
-        .stTextInput > div > div > input::placeholder,
-        .stTextArea > div > div > textarea::placeholder {
-            color: #6b9fa8 !important;
+            background: rgba(13, 27, 42, 0.9) !important;
+            border: 2px solid rgba(0, 217, 255, 0.4) !important;
+            color: #00d9ff !important;
+            box-shadow: 
+                inset 0 0 10px rgba(0, 0, 0, 0.7),
+                0 0 10px rgba(0, 217, 255, 0.2);
         }
         
         .stTextInput > div > div > input:focus,
         .stTextArea > div > div > textarea:focus {
-            background: rgba(255, 255, 255, 0.75) !important;
-            border-color: rgba(93, 206, 216, 0.7) !important;
-            box-shadow: 
-                inset 0 2px 4px rgba(0, 0, 0, 0.05),
-                0 0 0 3px rgba(93, 206, 216, 0.15) !important;
-        }
-        
-        /* === SELECT BOX === */
-        .stSelectbox > div > div {
-            background: rgba(255, 255, 255, 0.6) !important;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(93, 206, 216, 0.3) !important;
-            border-radius: 12px !important;
-            color: #0d4855 !important;
-        }
-        
-        .stSelectbox label {
-            color: #0d4855 !important;
-            font-weight: 600;
-        }
-        
-        /* === DATAFRAME - GLASSMORPHISM === */
-        [data-testid="stDataFrame"] {
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(31, 38, 135, 0.1);
-            overflow: hidden;
+            border-color: #00d9ff !important;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.5) !important;
         }
         
         /* === ALERTS === */
         .stAlert {
-            background: rgba(255, 255, 255, 0.5) !important;
-            backdrop-filter: blur(15px);
-            border-left-width: 4px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(31, 38, 135, 0.1);
+            background: rgba(13, 27, 42, 0.9) !important;
+            border-radius: 6px;
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
         }
         
         .stAlert p {
-            color: #1a5f6f !important;
-            font-weight: 500;
+            color: #e0f4ff !important;
         }
         
-        /* === SCROLLBAR - MODERN === */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
-        
+        /* === SCROLLBAR === */
         ::-webkit-scrollbar-thumb {
-            background: rgba(93, 206, 216, 0.5);
-            border-radius: 10px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: linear-gradient(180deg, #00d9ff 0%, #0099cc 100%);
+            border: 1px solid #00d9ff;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
         }
         
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(93, 206, 216, 0.7);
-        }
-        
-        /* === LOADING SPINNER === */
-        .stSpinner > div {
-            border-color: #5dced8 transparent #5dced8 transparent !important;
-        }
-        
-        /* === LOGO STYLING === */
+        /* === LOGO === */
         img {
-            filter: drop-shadow(0 4px 8px rgba(13, 72, 85, 0.2));
-            border-radius: 12px;
+            filter: drop-shadow(0 0 15px rgba(0, 217, 255, 0.5));
+            border: 2px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            padding: 5px;
+            background: rgba(13, 27, 42, 0.5);
         }
         
-        /* === CHAT MESSAGES === */
-        .stChatMessage {
-            background: rgba(255, 255, 255, 0.4) !important;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 16px;
-            padding: 16px;
-            margin: 12px 0;
-            box-shadow: 0 4px 12px rgba(31, 38, 135, 0.1);
+        /* === HUD CORNERS === */
+        .main::before {
+            content: '';
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 50px;
+            height: 50px;
+            border-top: 3px solid #00d9ff;
+            border-left: 3px solid #00d9ff;
+            opacity: 0.5;
+            z-index: 1000;
         }
         
-        .stChatMessage p {
-            color: #1a5f6f !important;
-        }
-        
-        /* === CARD-LIKE CONTAINERS === */
-        .element-container {
-            animation: fadeIn 0.5s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .main::after {
+            content: '';
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 50px;
+            height: 50px;
+            border-top: 3px solid #ff9933;
+            border-right: 3px solid #ff9933;
+            opacity: 0.5;
+            z-index: 1000;
         }
         
         </style>
@@ -1976,7 +1857,7 @@ def main() -> None:
     )
     
     init_session_state()
-    set_soft_gradient_theme()
+    set_hud_futuristic_theme()
     
     if st.session_state.get('data_loaded', False) and 'notification_shown' not in st.session_state:
         st.session_state.notification_shown = True
