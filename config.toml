@@ -1,0 +1,81 @@
+[theme]
+# Primary accent color for interactive elements
+primaryColor = "#1f77b4"
+
+# Background color for the main content area
+backgroundColor = "#ffffff"
+
+# Background color used for the sidebar and most interactive widgets
+secondaryBackgroundColor = "#f0f2f6"
+
+# Color used for almost all text
+textColor = "#262730"
+
+# Font family for all text in the app
+font = "sans serif"
+
+[server]
+# List of folders that should not trigger file watcher to reload the app
+watcherBlacklist = ['recruitment_data']
+
+# If false, will attempt to open a browser window on start
+headless = false
+
+# Automatically rerun script when the file is modified on disk
+runOnSave = true
+
+# The port where the server will listen for browser connections
+port = 8501
+
+# Enables support for websocket compression
+enableWebsocketCompression = true
+
+# Enable CORS
+enableCORS = false
+
+# Enable XSRF protection
+enableXsrfProtection = true
+
+[browser]
+# Internet address where users should point their browsers in order to connect to the app
+serverAddress = "localhost"
+
+# Whether to send usage statistics to Streamlit
+gatherUsageStats = false
+
+[runner]
+# Allows you to type a variable or string by itself in a single line of Python code to write it to the app
+magicEnabled = true
+
+# Install a Python tracer to allow you to stop or pause your script at any point and introspect it
+installTracer = false
+
+# Sets the MPLBACKEND environment variable to Agg inside Streamlit to prevent Python crashes
+fixMatplotlib = true
+
+# Handle script rerun requests immediately, rather than waiting for script execution to reach a yield point
+fastReruns = true
+
+[logger]
+# Level of logging: 'error', 'warning', 'info', or 'debug'
+level = "info"
+
+# String format for logging messages
+messageFormat = "%(asctime)s %(levelname)s: %(message)s"
+
+[client]
+# Whether to enable st.cache
+caching = true
+
+# If false, makes your Streamlit script not draw to a Streamlit app
+displayEnabled = true
+
+# Controls whether uncaught app exceptions are displayed in the browser
+showErrorDetails = true
+
+[deprecation]
+# Set to false to disable the deprecation warning for the file uploader encoding
+showfileUploaderEncoding = false
+
+# Set to false to disable the deprecation warning for using the global pyplot instance
+showPyplotGlobalUse = false
