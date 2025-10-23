@@ -205,10 +205,10 @@ DEFAULT_ROLE_REQUIREMENTS: Dict[str, str] = {
 
 # --- FUNGSI UNTUK MENGATUR TEMA ---
 def set_blue_gradient_theme():
-    """Simple Blue Gradient Theme - Safe and Clean"""
+    """Simple Blue Gradient Theme - FIXED TEXT VISIBILITY"""
     st.markdown("""
         <style>
-        /* === BACKGROUND - SIMPLE GRADIENT === */
+        /* === BACKGROUND === */
         .stApp {
             background: linear-gradient(135deg, #1a4d6d 0%, #4a90c4 50%, #d4e8f5 100%);
             font-family: 'Inter', sans-serif;
@@ -219,16 +219,75 @@ def set_blue_gradient_theme():
             background-color: #1a4d6d !important;
         }
         
-        /* === SIDEBAR === */
+        /* === SIDEBAR - FIX TEXT COLOR === */
         section[data-testid="stSidebar"] {
             background-color: rgba(26, 77, 109, 0.95) !important;
             border-right: 2px solid #4a90c4;
         }
         
-        /* === TEXT COLORS === */
-        h1, h2, h3 {
+        /* CRITICAL: Sidebar text must be LIGHT/WHITE */
+        section[data-testid="stSidebar"] * {
+            color: #e8f4f8 !important;
+        }
+        
+        section[data-testid="stSidebar"] h1,
+        section[data-testid="stSidebar"] h2,
+        section[data-testid="stSidebar"] h3 {
+            color: #a8d8ea !important;
+            font-weight: 700 !important;
+        }
+        
+        section[data-testid="stSidebar"] label {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+        }
+        
+        section[data-testid="stSidebar"] p {
+            color: #d4e8f5 !important;
+        }
+        
+        /* === MAIN CONTENT TEXT - DARK ON LIGHT === */
+        .main h1, .main h2, .main h3 {
             color: #1a4d6d !important;
             font-weight: 700 !important;
+        }
+        
+        .main p {
+            color: #0d2635 !important;
+        }
+        
+        .main label {
+            color: #1a4d6d !important;
+            font-weight: 600 !important;
+        }
+        
+        /* === EXPANDER - FIX VISIBILITY === */
+        .streamlit-expanderHeader {
+            background: rgba(26, 77, 109, 0.85) !important;
+            backdrop-filter: blur(10px);
+            border: 2px solid #4a90c4 !important;
+            border-radius: 8px !important;
+            padding: 14px 18px !important;
+        }
+        
+        /* CRITICAL: Expander header text WHITE */
+        .streamlit-expanderHeader * {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Expander content background - LIGHT */
+        .streamlit-expanderContent {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 2px solid #4a90c4;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 16px !important;
+        }
+        
+        /* Expander content text - DARK */
+        .streamlit-expanderContent * {
+            color: #0d2635 !important;
         }
         
         /* === BUTTONS === */
@@ -249,7 +308,7 @@ def set_blue_gradient_theme():
         }
         
         .stButton > button[kind="secondary"] {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             color: #1a4d6d !important;
             border: 2px solid #4a90c4;
             border-radius: 8px;
@@ -280,7 +339,7 @@ def set_blue_gradient_theme():
         
         /* === METRICS === */
         div[data-testid="stMetric"] {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             border: 2px solid #4a90c4;
             border-radius: 12px;
             padding: 20px;
@@ -293,17 +352,23 @@ def set_blue_gradient_theme():
             font-weight: 800 !important;
         }
         
+        [data-testid="stMetricLabel"] {
+            color: #0d2635 !important;
+            font-weight: 600 !important;
+        }
+        
         /* === TABS === */
         .stTabs [data-baseweb="tab"] {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.8);
             border: 2px solid rgba(74, 144, 196, 0.3);
             border-radius: 8px 8px 0 0;
             color: #1a4d6d !important;
             padding: 12px 24px;
+            font-weight: 600;
         }
         
         .stTabs [data-baseweb="tab"]:hover {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             border-color: #4a90c4;
         }
         
@@ -321,7 +386,8 @@ def set_blue_gradient_theme():
             background: rgba(255, 255, 255, 0.95) !important;
             border: 2px solid #4a90c4 !important;
             border-radius: 8px !important;
-            color: #1a4d6d !important;
+            color: #0d2635 !important;
+            font-weight: 500 !important;
         }
         
         .stTextInput > div > div > input:focus,
@@ -330,24 +396,61 @@ def set_blue_gradient_theme():
             box-shadow: 0 0 0 2px rgba(74, 144, 196, 0.2) !important;
         }
         
+        /* Input labels */
+        .stTextInput label,
+        .stTextArea label,
+        .stSelectbox label {
+            color: #1a4d6d !important;
+            font-weight: 600 !important;
+        }
+        
         /* === FILE UPLOADER === */
         [data-testid="stFileUploader"] {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             border: 2px dashed #4a90c4;
             border-radius: 12px;
             padding: 24px;
         }
         
+        [data-testid="stFileUploader"] label {
+            color: #1a4d6d !important;
+            font-weight: 600 !important;
+        }
+        
         /* === ALERTS === */
         .stAlert {
-            background: rgba(255, 255, 255, 0.9) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
             border-radius: 8px;
+        }
+        
+        .stAlert p {
+            color: #0d2635 !important;
         }
         
         /* === DATAFRAME === */
         [data-testid="stDataFrame"] {
+            background: rgba(255, 255, 255, 0.95);
             border: 2px solid #4a90c4;
             border-radius: 8px;
+        }
+        
+        /* === CHECKBOX & RADIO === */
+        .stCheckbox label,
+        .stRadio label {
+            color: #0d2635 !important;
+            font-weight: 500 !important;
+        }
+        
+        /* === CHAT MESSAGES === */
+        .stChatMessage {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 2px solid #4a90c4;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        .stChatMessage p {
+            color: #0d2635 !important;
         }
         
         /* === SCROLLBAR === */
