@@ -205,100 +205,90 @@ DEFAULT_ROLE_REQUIREMENTS: Dict[str, str] = {
 
 # --- FUNGSI UNTUK MENGATUR TEMA ---
 def set_blue_gradient_theme():
-    """Simple theme - dark bg = light text, light bg = dark text"""
+    """Fixed theme with proper contrast"""
     st.markdown("""
         <style>
-        /* Background gradient */
+        /* Background */
         .stApp {
             background: linear-gradient(135deg, #1a4d6d 0%, #4a90c4 50%, #d4e8f5 100%);
         }
         
-        /* Header - DARK bg */
+        /* Header dark */
         header[data-testid="stHeader"] {
             background: #1a4d6d !important;
         }
         
-        /* SIDEBAR - DARK bg → LIGHT text */
+        /* === SIDEBAR === */
         section[data-testid="stSidebar"] {
             background: #1a4d6d !important;
         }
         
+        /* Default sidebar text - WHITE */
         section[data-testid="stSidebar"] * {
             color: #ffffff !important;
         }
         
-        /* MAIN AREA - LIGHT bg → DARK text */
-        .main * {
+        /* === KOTAK PUTIH DI SIDEBAR - TEXT GELAP! === */
+        section[data-testid="stSidebar"] .stButton,
+        section[data-testid="stSidebar"] .stButton *,
+        section[data-testid="stSidebar"] button,
+        section[data-testid="stSidebar"] button *,
+        section[data-testid="stSidebar"] .element-container button,
+        section[data-testid="stSidebar"] .element-container button * {
+            color: #1a4d6d !important;
+            background: #ffffff !important;
+        }
+        
+        /* Expander di sidebar - kotak putih */
+        section[data-testid="stSidebar"] .streamlit-expanderHeader,
+        section[data-testid="stSidebar"] .streamlit-expanderHeader * {
+            background: #ffffff !important;
             color: #1a4d6d !important;
         }
         
-        /* BUTTONS - DARK bg → LIGHT text */
-        .stButton button {
+        /* === MAIN BUTTONS - dark bg, white text === */
+        .main .stButton button {
             background: #1a4d6d !important;
             color: #ffffff !important;
             border: 2px solid #4a90c4;
-            border-radius: 8px;
-            padding: 12px 24px;
         }
         
-        /* CARDS - LIGHT bg → DARK text */
+        /* === METRICS - white bg, dark text === */
         div[data-testid="stMetric"] {
             background: #ffffff !important;
-            border: 2px solid #4a90c4;
-            border-radius: 12px;
-            padding: 20px;
+            color: #1a4d6d !important;
         }
         
         div[data-testid="stMetric"] * {
             color: #1a4d6d !important;
         }
         
-        /* EXPANDER HEADER - DARK bg → LIGHT text */
-        .streamlit-expanderHeader {
+        /* === EXPANDER IN MAIN === */
+        .main .streamlit-expanderHeader {
             background: #1a4d6d !important;
-            border: 2px solid #4a90c4 !important;
-        }
-        
-        .streamlit-expanderHeader * {
             color: #ffffff !important;
         }
         
-        /* EXPANDER CONTENT - LIGHT bg → DARK text */
-        .streamlit-expanderContent {
+        .main .streamlit-expanderContent {
             background: #ffffff !important;
-            border: 2px solid #4a90c4;
-        }
-        
-        .streamlit-expanderContent * {
             color: #1a4d6d !important;
         }
         
-        /* TABS - LIGHT bg → DARK text */
+        /* === INPUTS === */
+        .stTextInput input,
+        .stTextArea textarea {
+            background: #ffffff !important;
+            color: #1a4d6d !important;
+        }
+        
+        /* === TABS === */
         .stTabs [data-baseweb="tab"] {
             background: #ffffff !important;
             color: #1a4d6d !important;
         }
         
-        /* ACTIVE TAB - DARK bg → LIGHT text */
         .stTabs [data-baseweb="tab"][aria-selected="true"] {
             background: #1a4d6d !important;
-            color: #ffffff !important;
-        }
-        
-        /* INPUTS - LIGHT bg → DARK text */
-        .stTextInput input,
-        .stTextArea textarea {
-            background: #ffffff !important;
-            color: #1a4d6d !important;
-            border: 2px solid #4a90c4 !important;
-        }
-        
-        /* SIDEBAR ALERTS - DARK bg → LIGHT text */
-        section[data-testid="stSidebar"] .stAlert {
-            background: rgba(74, 144, 196, 0.3) !important;
-        }
-        
-        section[data-testid="stSidebar"] .stAlert * {
             color: #ffffff !important;
         }
         
