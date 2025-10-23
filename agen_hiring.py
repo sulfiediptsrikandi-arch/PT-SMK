@@ -211,6 +211,23 @@ def set_futuristic_purple_theme():
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap');
         
         /* ====================================== */
+        /* AGGRESSIVE WHITE TEXT ENFORCEMENT      */
+        /* ====================================== */
+        
+        /* Force ALL text to be WHITE */
+        *,
+        *::before,
+        *::after,
+        div, span, p, label, h1, h2, h3, h4, h5, h6,
+        a, li, ul, ol, td, th, tr,
+        input, textarea, select, option,
+        .main *, 
+        [data-testid] *,
+        [class*="st"] * {
+            color: #ffffff !important;
+        }
+        
+        /* ====================================== */
         /* AGGRESSIVE WHITE BACKGROUND REMOVAL    */
         /* ====================================== */
         
@@ -305,6 +322,20 @@ def set_futuristic_purple_theme():
             color: #ffffff !important;
         }
         
+        /* Force all form labels and text to white */
+        label,
+        legend,
+        .stSelectbox label,
+        .stTextInput label,
+        .stTextArea label,
+        .stRadio label,
+        .stCheckbox label,
+        [data-testid] label,
+        small,
+        .caption {
+            color: #ffffff !important;
+        }
+        
         /* === BUTTONS === */
         .stButton > button {
             background: linear-gradient(135deg, #0097A7 0%, #00BCD4 100%) !important;
@@ -334,6 +365,24 @@ def set_futuristic_purple_theme():
             color: #ffffff !important;
             border: 2px solid #FFB6C1 !important;
             font-weight: 700 !important;
+        }
+        
+        /* All button text must be white */
+        button,
+        button *,
+        .stButton button *,
+        .stDownloadButton button * {
+            color: #ffffff !important;
+        }
+        
+        /* Links */
+        a, a * {
+            color: #4DD0E1 !important;
+            text-decoration: underline;
+        }
+        
+        a:hover {
+            color: #26C6DA !important;
         }
         
         /* === METRICS === */
@@ -432,11 +481,44 @@ def set_futuristic_purple_theme():
         /* Selectbox */
         .stSelectbox > div > div,
         .stSelectbox select,
-        .stSelectbox div[data-baseweb="select"] > div {
+        .stSelectbox div[data-baseweb="select"],
+        .stSelectbox div[data-baseweb="select"] > div,
+        .stSelectbox div[data-baseweb="select"] *,
+        .stSelectbox [role="button"],
+        .stSelectbox [role="button"] *,
+        .stSelectbox option,
+        select option {
             background: rgba(0, 96, 100, 0.6) !important;
             border: 2px solid #4DD0E1 !important;
             color: #ffffff !important;
             border-radius: 8px;
+        }
+        
+        /* Dropdown menu options */
+        [data-baseweb="popover"],
+        [data-baseweb="menu"],
+        [role="listbox"],
+        [role="option"],
+        ul[role="listbox"] li,
+        div[data-baseweb="menu"] *,
+        div[role="listbox"] * {
+            background: rgba(0, 96, 100, 0.9) !important;
+            color: #ffffff !important;
+        }
+        
+        /* Placeholder text */
+        ::placeholder,
+        ::-webkit-input-placeholder,
+        ::-moz-placeholder,
+        :-ms-input-placeholder {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        
+        /* Input states */
+        input:focus,
+        textarea:focus,
+        select:focus {
+            color: #ffffff !important;
         }
         
         /* === FILE UPLOADER === */
