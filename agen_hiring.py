@@ -204,117 +204,212 @@ DEFAULT_ROLE_REQUIREMENTS: Dict[str, str] = {
 
 
 # --- FUNGSI UNTUK MENGATUR TEMA ---
-def set_blue_gradient_theme():
-    """Theme with proper expander content contrast"""
+def set_futuristic_purple_theme():
+    """Futuristic Purple-Cyan Theme"""
     st.markdown("""
         <style>
-        /* Background */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap');
+        
+        /* Background - Deep Blue */
         .stApp {
-            background: linear-gradient(135deg, #1a4d6d 0%, #4a90c4 50%, #d4e8f5 100%);
+            background: linear-gradient(135deg, 
+                #1a1a4d 0%, 
+                #252855 25%, 
+                #2d3561 50%, 
+                #3d4371 75%, 
+                #4a5080 100%);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        /* Purple/Cyan overlay */
+        .stApp::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at top left, rgba(157, 78, 221, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(0, 245, 255, 0.15) 0%, transparent 50%);
+            pointer-events: none;
         }
         
         /* Header */
         header[data-testid="stHeader"] {
-            background: #1a4d6d !important;
+            background: linear-gradient(90deg, #1a1a4d 0%, #252855 100%) !important;
+            border-bottom: 2px solid rgba(0, 245, 255, 0.3);
         }
         
-        /* === SIDEBAR - dark background === */
+        /* === SIDEBAR - DARK BG === */
         section[data-testid="stSidebar"] {
-            background: #1a4d6d !important;
+            background: linear-gradient(180deg, #1a1a4d 0%, #252855 100%) !important;
+            border-right: 2px solid rgba(0, 245, 255, 0.5);
         }
         
-        /* Sidebar default text - WHITE */
-        section[data-testid="stSidebar"] * {
+        /* ALL SIDEBAR TEXT = WHITE */
+        section[data-testid="stSidebar"],
+        section[data-testid="stSidebar"] *,
+        section[data-testid="stSidebar"] div,
+        section[data-testid="stSidebar"] p,
+        section[data-testid="stSidebar"] span,
+        section[data-testid="stSidebar"] label {
             color: #ffffff !important;
         }
         
-        /* === EXPANDER HEADER - tetap WHITE text === */
-        section[data-testid="stSidebar"] .streamlit-expanderHeader,
-        section[data-testid="stSidebar"] .streamlit-expanderHeader * {
+        /* Sidebar headers - CYAN */
+        section[data-testid="stSidebar"] h1,
+        section[data-testid="stSidebar"] h2,
+        section[data-testid="stSidebar"] h3 {
+            color: #00f5ff !important;
+            font-family: 'Orbitron', sans-serif !important;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 245, 255, 0.8);
+        }
+        
+        /* === MAIN TEXT === */
+        .main h1, .main h2, .main h3 {
             color: #ffffff !important;
-            background: transparent !important;
+            font-family: 'Orbitron', sans-serif !important;
+            text-shadow: 0 0 15px rgba(0, 245, 255, 0.6);
         }
         
-        /* === EXPANDER CONTENT - KOTAK PUTIH = TEXT GELAP! === */
-        section[data-testid="stSidebar"] .streamlit-expanderContent {
-            background: #ffffff !important;
-            border: 2px solid #4a90c4 !important;
-            border-radius: 8px !important;
-            padding: 16px !important;
+        .main p, .main div, .main span {
+            color: #e0e0e0 !important;
         }
         
-        section[data-testid="stSidebar"] .streamlit-expanderContent *,
-        section[data-testid="stSidebar"] .streamlit-expanderContent p,
-        section[data-testid="stSidebar"] .streamlit-expanderContent div,
-        section[data-testid="stSidebar"] .streamlit-expanderContent span,
-        section[data-testid="stSidebar"] .streamlit-expanderContent li {
-            color: #1a4d6d !important;
-            background: transparent !important;
+        .main label {
+            color: #00f5ff !important;
         }
         
-        /* === BUTTONS - dark bg, white text === */
-        .stButton button {
-            background: #1a4d6d !important;
+        /* === BUTTONS - Purple Gradient === */
+        .stButton > button[kind="primary"] {
+            background: linear-gradient(135deg, #9d4edd 0%, #c77dff 100%) !important;
             color: #ffffff !important;
-            border: 2px solid #4a90c4;
+            border: 2px solid #00f5ff;
             border-radius: 8px;
-            padding: 12px 24px;
+            font-family: 'Orbitron', sans-serif;
+            padding: 14px 32px;
+            box-shadow: 0 0 20px rgba(157, 78, 221, 0.5);
         }
         
-        /* Download button in sidebar with white text */
-        section[data-testid="stSidebar"] .stDownloadButton button,
-        section[data-testid="stSidebar"] .stDownloadButton button * {
-            background: rgba(74, 144, 196, 0.5) !important;
+        .stButton > button[kind="primary"]:hover {
+            box-shadow: 0 0 30px rgba(157, 78, 221, 0.8);
+            transform: translateY(-3px);
+        }
+        
+        /* === DOWNLOAD BUTTON === */
+        .stDownloadButton > button,
+        .stDownloadButton > button * {
+            background: linear-gradient(135deg, #9d4edd 0%, #c77dff 100%) !important;
             color: #ffffff !important;
+            border: 2px solid #c77dff;
+            font-weight: 700 !important;
         }
         
-        /* === METRICS - white bg, dark text === */
+        /* === METRICS - Cyan === */
         div[data-testid="stMetric"] {
-            background: #ffffff !important;
-            border: 2px solid #4a90c4;
+            background: linear-gradient(135deg, 
+                rgba(37, 40, 85, 0.9) 0%, 
+                rgba(45, 53, 97, 0.9) 100%) !important;
+            border: 2px solid #00f5ff;
             border-radius: 12px;
-            padding: 20px;
+            padding: 24px;
         }
         
-        div[data-testid="stMetric"] * {
-            color: #1a4d6d !important;
+        [data-testid="stMetricValue"] {
+            color: #00f5ff !important;
+            font-family: 'Orbitron', sans-serif !important;
+            font-size: 3.5rem !important;
+            text-shadow: 0 0 20px rgba(0, 245, 255, 1);
         }
         
-        /* === MAIN EXPANDER === */
-        .main .streamlit-expanderHeader {
-            background: #1a4d6d !important;
+        [data-testid="stMetricLabel"] {
+            color: #c77dff !important;
+        }
+        
+        /* === EXPANDER === */
+        .streamlit-expanderHeader {
+            background: linear-gradient(90deg, 
+                rgba(37, 40, 85, 0.8) 0%, 
+                rgba(45, 53, 97, 0.8) 100%) !important;
+            border: 2px solid #00f5ff !important;
+            border-radius: 8px !important;
+        }
+        
+        .streamlit-expanderHeader,
+        .streamlit-expanderHeader * {
             color: #ffffff !important;
-            border: 2px solid #4a90c4 !important;
         }
         
-        .main .streamlit-expanderContent {
-            background: #ffffff !important;
-            border: 2px solid #4a90c4;
+        .streamlit-expanderContent {
+            background: linear-gradient(135deg, 
+                rgba(37, 40, 85, 0.95) 0%, 
+                rgba(45, 53, 97, 0.95) 100%) !important;
+            border: 2px solid #00f5ff;
+            border-top: none;
+            padding: 20px !important;
         }
         
-        .main .streamlit-expanderContent * {
-            color: #1a4d6d !important;
-        }
-        
-        /* === INPUTS - white bg, dark text === */
-        .stTextInput input,
-        .stTextArea textarea,
-        .stSelectbox select {
-            background: #ffffff !important;
-            color: #1a4d6d !important;
-            border: 2px solid #4a90c4 !important;
+        .streamlit-expanderContent,
+        .streamlit-expanderContent *,
+        .streamlit-expanderContent p,
+        .streamlit-expanderContent div {
+            color: #e0e0e0 !important;
         }
         
         /* === TABS === */
         .stTabs [data-baseweb="tab"] {
-            background: #ffffff !important;
-            color: #1a4d6d !important;
-            border: 2px solid #4a90c4;
+            background: rgba(37, 40, 85, 0.6) !important;
+            border: 2px solid rgba(0, 245, 255, 0.3);
+            color: #00f5ff !important;
         }
         
         .stTabs [data-baseweb="tab"][aria-selected="true"] {
-            background: #1a4d6d !important;
+            background: linear-gradient(135deg, #9d4edd 0%, rgba(0, 245, 255, 0.3) 100%) !important;
             color: #ffffff !important;
+        }
+        
+        /* === INPUTS === */
+        .stTextInput input,
+        .stTextArea textarea {
+            background: rgba(26, 26, 77, 0.8) !important;
+            border: 2px solid #00f5ff !important;
+            color: #ffffff !important;
+        }
+        
+        /* === SCROLLBAR === */
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #9d4edd 0%, #00f5ff 100%);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+        }
+        
+        /* Tech corners */
+        .main::before {
+            content: '';
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            border-top: 3px solid #00f5ff;
+            border-left: 3px solid #00f5ff;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .main::after {
+            content: '';
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-top: 3px solid #9d4edd;
+            border-right: 3px solid #9d4edd;
+            opacity: 0.6;
+            pointer-events: none;
         }
         
         </style>
@@ -1714,7 +1809,7 @@ def main() -> None:
     )
     
     init_session_state()
-    set_blue_gradient_theme()
+    set_futuristic_purple_theme()
     
     if st.session_state.get('data_loaded', False) and 'notification_shown' not in st.session_state:
         st.session_state.notification_shown = True
