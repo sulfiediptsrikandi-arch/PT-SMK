@@ -205,7 +205,7 @@ DEFAULT_ROLE_REQUIREMENTS: Dict[str, str] = {
 
 # --- FUNGSI UNTUK MENGATUR TEMA ---
 def set_blue_gradient_theme():
-    """Fixed theme with proper contrast"""
+    """Theme with proper expander content contrast"""
     st.markdown("""
         <style>
         /* Background */
@@ -213,78 +213,103 @@ def set_blue_gradient_theme():
             background: linear-gradient(135deg, #1a4d6d 0%, #4a90c4 50%, #d4e8f5 100%);
         }
         
-        /* Header dark */
+        /* Header */
         header[data-testid="stHeader"] {
             background: #1a4d6d !important;
         }
         
-        /* === SIDEBAR === */
+        /* === SIDEBAR - dark background === */
         section[data-testid="stSidebar"] {
             background: #1a4d6d !important;
         }
         
-        /* Default sidebar text - WHITE */
+        /* Sidebar default text - WHITE */
         section[data-testid="stSidebar"] * {
             color: #ffffff !important;
         }
         
-        /* === KOTAK PUTIH DI SIDEBAR - TEXT GELAP! === */
-        section[data-testid="stSidebar"] .stButton,
-        section[data-testid="stSidebar"] .stButton *,
-        section[data-testid="stSidebar"] button,
-        section[data-testid="stSidebar"] button *,
-        section[data-testid="stSidebar"] .element-container button,
-        section[data-testid="stSidebar"] .element-container button * {
-            color: #1a4d6d !important;
-            background: #ffffff !important;
-        }
-        
-        /* Expander di sidebar - kotak putih */
+        /* === EXPANDER HEADER - tetap WHITE text === */
         section[data-testid="stSidebar"] .streamlit-expanderHeader,
         section[data-testid="stSidebar"] .streamlit-expanderHeader * {
-            background: #ffffff !important;
-            color: #1a4d6d !important;
+            color: #ffffff !important;
+            background: transparent !important;
         }
         
-        /* === MAIN BUTTONS - dark bg, white text === */
-        .main .stButton button {
+        /* === EXPANDER CONTENT - KOTAK PUTIH = TEXT GELAP! === */
+        section[data-testid="stSidebar"] .streamlit-expanderContent {
+            background: #ffffff !important;
+            border: 2px solid #4a90c4 !important;
+            border-radius: 8px !important;
+            padding: 16px !important;
+        }
+        
+        section[data-testid="stSidebar"] .streamlit-expanderContent *,
+        section[data-testid="stSidebar"] .streamlit-expanderContent p,
+        section[data-testid="stSidebar"] .streamlit-expanderContent div,
+        section[data-testid="stSidebar"] .streamlit-expanderContent span,
+        section[data-testid="stSidebar"] .streamlit-expanderContent li {
+            color: #1a4d6d !important;
+            background: transparent !important;
+        }
+        
+        /* === BUTTONS - dark bg, white text === */
+        .stButton button {
             background: #1a4d6d !important;
             color: #ffffff !important;
             border: 2px solid #4a90c4;
+            border-radius: 8px;
+            padding: 12px 24px;
+        }
+        
+        /* Download button in sidebar with white text */
+        section[data-testid="stSidebar"] .stDownloadButton button,
+        section[data-testid="stSidebar"] .stDownloadButton button * {
+            background: rgba(74, 144, 196, 0.5) !important;
+            color: #ffffff !important;
         }
         
         /* === METRICS - white bg, dark text === */
         div[data-testid="stMetric"] {
             background: #ffffff !important;
-            color: #1a4d6d !important;
+            border: 2px solid #4a90c4;
+            border-radius: 12px;
+            padding: 20px;
         }
         
         div[data-testid="stMetric"] * {
             color: #1a4d6d !important;
         }
         
-        /* === EXPANDER IN MAIN === */
+        /* === MAIN EXPANDER === */
         .main .streamlit-expanderHeader {
             background: #1a4d6d !important;
             color: #ffffff !important;
+            border: 2px solid #4a90c4 !important;
         }
         
         .main .streamlit-expanderContent {
             background: #ffffff !important;
+            border: 2px solid #4a90c4;
+        }
+        
+        .main .streamlit-expanderContent * {
             color: #1a4d6d !important;
         }
         
-        /* === INPUTS === */
+        /* === INPUTS - white bg, dark text === */
         .stTextInput input,
-        .stTextArea textarea {
+        .stTextArea textarea,
+        .stSelectbox select {
             background: #ffffff !important;
             color: #1a4d6d !important;
+            border: 2px solid #4a90c4 !important;
         }
         
         /* === TABS === */
         .stTabs [data-baseweb="tab"] {
             background: #ffffff !important;
             color: #1a4d6d !important;
+            border: 2px solid #4a90c4;
         }
         
         .stTabs [data-baseweb="tab"][aria-selected="true"] {
