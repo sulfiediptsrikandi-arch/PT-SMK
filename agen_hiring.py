@@ -205,89 +205,57 @@ DEFAULT_ROLE_REQUIREMENTS: Dict[str, str] = {
 
 # --- FUNGSI UNTUK MENGATUR TEMA ---
 def set_futuristic_robotic_theme():
-    """Enhanced Futuristic Robotic Theme with animations and glow effects"""
+    """Enhanced Futuristic Robotic Theme - FIXED VERSION"""
     st.markdown("""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
         
-        /* === GLOBAL BACKGROUND & ANIMATIONS === */
+        /* === GLOBAL BACKGROUND === */
         .stApp {
             background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1729 100%);
             font-family: 'Rajdhani', sans-serif;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        /* Animated Background Gradient */
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        .stApp::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(138, 43, 226, 0.05) 0%, transparent 50%);
-            pointer-events: none;
-            animation: gradientShift 15s ease infinite;
-            z-index: 0;
         }
         
         /* === SIDEBAR STYLING === */
         section[data-testid="stSidebar"] {
             background: linear-gradient(180deg, #0f1729 0%, #1a1f3a 100%);
             border-right: 2px solid rgba(0, 255, 255, 0.3);
-            box-shadow: 
-                0 0 30px rgba(0, 255, 255, 0.2),
-                inset 0 0 50px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
         }
         
-        section[data-testid="stSidebar"] * {
+        section[data-testid="stSidebar"] .stMarkdown,
+        section[data-testid="stSidebar"] label,
+        section[data-testid="stSidebar"] p {
             color: #00ffff !important;
         }
         
         /* === TYPOGRAPHY === */
-        * {
-            font-family: 'Rajdhani', sans-serif;
-        }
-        
         h1, h2, h3 {
             font-family: 'Orbitron', sans-serif !important;
             font-weight: 700;
-            color: #00ffff;
+            color: #00ffff !important;
             text-shadow: 
                 0 0 10px rgba(0, 255, 255, 0.8),
-                0 0 20px rgba(0, 255, 255, 0.5),
-                0 0 30px rgba(0, 255, 255, 0.3);
+                0 0 20px rgba(0, 255, 255, 0.5);
             letter-spacing: 2px;
-            animation: glowPulse 2s ease-in-out infinite;
         }
         
-        @keyframes glowPulse {
-            0%, 100% { 
-                text-shadow: 
-                    0 0 10px rgba(0, 255, 255, 0.8),
-                    0 0 20px rgba(0, 255, 255, 0.5);
-            }
-            50% { 
-                text-shadow: 
-                    0 0 15px rgba(0, 255, 255, 1),
-                    0 0 30px rgba(0, 255, 255, 0.7),
-                    0 0 45px rgba(0, 255, 255, 0.5);
-            }
+        /* Main content text */
+        .main .stMarkdown {
+            color: #e0e0e0 !important;
         }
         
-        /* === PRIMARY BUTTONS - CYBER STYLE === */
+        .main p {
+            color: #e0e0e0 !important;
+        }
+        
+        .main label {
+            color: #00ffff !important;
+        }
+        
+        /* === PRIMARY BUTTONS === */
         .stButton > button[kind="primary"] {
             background: linear-gradient(135deg, #00ffff 0%, #0080ff 50%, #8a2be2 100%);
-            background-size: 200% 200%;
             color: #000 !important;
             border: 2px solid rgba(0, 255, 255, 0.5);
             border-radius: 10px;
@@ -297,47 +265,15 @@ def set_futuristic_robotic_theme():
             letter-spacing: 2px;
             box-shadow: 
                 0 0 20px rgba(0, 255, 255, 0.5),
-                0 0 40px rgba(0, 128, 255, 0.3),
-                inset 0 0 10px rgba(255, 255, 255, 0.2);
-            transition: all 0.4s ease;
-            animation: gradientShift 3s ease infinite;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stButton > button[kind="primary"]::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+                0 0 40px rgba(0, 128, 255, 0.3);
+            transition: all 0.3s ease;
         }
         
         .stButton > button[kind="primary"]:hover {
-            background: linear-gradient(135deg, #00ffff 0%, #00bfff 50%, #8a2be2 100%);
             box-shadow: 
                 0 0 30px rgba(0, 255, 255, 0.8),
-                0 0 60px rgba(0, 128, 255, 0.5),
-                0 0 90px rgba(138, 43, 226, 0.3);
-            transform: translateY(-3px) scale(1.05);
-            border-color: rgba(0, 255, 255, 1);
-        }
-        
-        .stButton > button[kind="primary"]:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-        
-        .stButton > button[kind="primary"]:active {
-            transform: translateY(0) scale(0.98);
-            box-shadow: 
-                0 0 15px rgba(0, 255, 255, 0.6),
-                inset 0 0 20px rgba(0, 0, 0, 0.3);
+                0 0 60px rgba(0, 128, 255, 0.5);
+            transform: translateY(-2px) scale(1.03);
         }
         
         /* === SECONDARY BUTTONS === */
@@ -348,86 +284,47 @@ def set_futuristic_robotic_theme():
             border-radius: 10px;
             font-family: 'Rajdhani', sans-serif;
             font-weight: 500;
-            box-shadow: 
-                0 0 10px rgba(0, 255, 255, 0.2),
-                inset 0 0 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
             transition: all 0.3s ease;
         }
         
         .stButton > button[kind="secondary"]:hover {
-            background: linear-gradient(135deg, rgba(26, 31, 58, 1) 0%, rgba(15, 23, 41, 1) 100%);
             border-color: rgba(0, 255, 255, 0.8);
-            box-shadow: 
-                0 0 20px rgba(0, 255, 255, 0.4),
-                inset 0 0 15px rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
             transform: translateY(-2px);
         }
         
         /* === DOWNLOAD BUTTON === */
         .stDownloadButton > button {
             background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
-            background-size: 200% 200%;
             color: #000 !important;
             border: 2px solid rgba(0, 255, 136, 0.5);
             border-radius: 10px;
             font-family: 'Orbitron', sans-serif;
             font-weight: 700;
-            box-shadow: 
-                0 0 20px rgba(0, 255, 136, 0.5),
-                inset 0 0 10px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
             transition: all 0.3s ease;
-            animation: gradientShift 3s ease infinite;
         }
         
         .stDownloadButton > button:hover {
-            box-shadow: 
-                0 0 30px rgba(0, 255, 136, 0.8),
-                0 0 60px rgba(0, 204, 102, 0.5);
-            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+            transform: translateY(-2px) scale(1.03);
         }
         
-        /* === METRICS - HOLOGRAPHIC CARDS === */
+        /* === METRICS === */
         div[data-testid="stMetric"] {
             background: linear-gradient(135deg, rgba(26, 31, 58, 0.6) 0%, rgba(15, 23, 41, 0.8) 100%);
-            backdrop-filter: blur(10px);
             padding: 20px;
             border-radius: 15px;
             border: 2px solid rgba(0, 255, 255, 0.3);
-            box-shadow: 
-                0 0 30px rgba(0, 255, 255, 0.2),
-                inset 0 0 20px rgba(0, 0, 0, 0.5);
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        div[data-testid="stMetric"]::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                transparent 30%,
-                rgba(0, 255, 255, 0.1) 50%,
-                transparent 70%
-            );
-            animation: hologramScan 3s linear infinite;
-        }
-        
-        @keyframes hologramScan {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+            transition: all 0.3s ease;
         }
         
         div[data-testid="stMetric"]:hover {
             border-color: rgba(0, 255, 255, 0.8);
-            box-shadow: 
-                0 0 40px rgba(0, 255, 255, 0.4),
-                inset 0 0 30px rgba(0, 255, 255, 0.1);
-            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+            transform: translateY(-3px);
         }
         
         [data-testid="stMetricValue"] {
@@ -435,13 +332,14 @@ def set_futuristic_robotic_theme():
             font-weight: 900 !important;
             font-family: 'Orbitron', sans-serif !important;
             color: #00ffff !important;
-            text-shadow: 
-                0 0 10px rgba(0, 255, 255, 1),
-                0 0 20px rgba(0, 255, 255, 0.7),
-                0 0 30px rgba(0, 255, 255, 0.5);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 1);
         }
         
-        /* === TABS - FUTURISTIC STYLE === */
+        [data-testid="stMetricLabel"] {
+            color: #e0e0e0 !important;
+        }
+        
+        /* === TABS === */
         .stTabs [data-baseweb="tab-list"] {
             gap: 10px;
             background: transparent;
@@ -460,7 +358,6 @@ def set_futuristic_robotic_theme():
         }
         
         .stTabs [data-baseweb="tab"]:hover {
-            background: linear-gradient(135deg, rgba(26, 31, 58, 0.8) 0%, rgba(15, 23, 41, 1) 100%);
             border-color: rgba(0, 255, 255, 0.5);
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
             transform: translateY(-2px);
@@ -470,29 +367,26 @@ def set_futuristic_robotic_theme():
             background: linear-gradient(135deg, #00ffff 0%, #0080ff 100%);
             color: #000 !important;
             border-color: #00ffff;
-            box-shadow: 
-                0 0 30px rgba(0, 255, 255, 0.6),
-                0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
         }
         
         /* === FILE UPLOADER === */
         [data-testid="stFileUploader"] {
             background: linear-gradient(135deg, rgba(26, 31, 58, 0.4) 0%, rgba(15, 23, 41, 0.6) 100%);
-            backdrop-filter: blur(10px);
             border: 2px dashed rgba(0, 255, 255, 0.3);
             border-radius: 15px;
             padding: 30px;
-            box-shadow: 
-                0 0 20px rgba(0, 255, 255, 0.1),
-                inset 0 0 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
             transition: all 0.3s ease;
         }
         
         [data-testid="stFileUploader"]:hover {
             border-color: rgba(0, 255, 255, 0.6);
-            box-shadow: 
-                0 0 30px rgba(0, 255, 255, 0.3),
-                inset 0 0 30px rgba(0, 255, 255, 0.05);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+        
+        [data-testid="stFileUploader"] label {
+            color: #00ffff !important;
         }
         
         /* === EXPANDERS === */
@@ -508,10 +402,8 @@ def set_futuristic_robotic_theme():
         }
         
         .streamlit-expanderHeader:hover {
-            background: linear-gradient(135deg, rgba(26, 31, 58, 0.8) 0%, rgba(15, 23, 41, 1) 100%);
             border-color: rgba(0, 255, 255, 0.6);
             box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
-            transform: translateX(5px);
         }
         
         /* === TEXT INPUTS === */
@@ -523,7 +415,6 @@ def set_futuristic_robotic_theme():
             color: #00ffff !important;
             font-family: 'Rajdhani', sans-serif;
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease;
         }
         
         .stTextInput > div > div > input:focus,
@@ -534,20 +425,34 @@ def set_futuristic_robotic_theme():
                 0 0 20px rgba(0, 255, 255, 0.3) !important;
         }
         
-        /* === LOADING SPINNER === */
-        .stSpinner > div {
-            border-color: #00ffff transparent #00ffff transparent !important;
-            animation: spin 1s linear infinite, glow 2s ease-in-out infinite;
+        /* === SELECT BOX === */
+        .stSelectbox > div > div {
+            background: rgba(15, 23, 41, 0.8) !important;
+            border: 2px solid rgba(0, 255, 255, 0.3) !important;
+            border-radius: 8px !important;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .stSelectbox label {
+            color: #00ffff !important;
         }
         
-        @keyframes glow {
-            0%, 100% { filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.5)); }
-            50% { filter: drop-shadow(0 0 20px rgba(0, 255, 255, 1)); }
+        /* === DATAFRAME === */
+        [data-testid="stDataFrame"] {
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+        
+        /* === INFO/SUCCESS/WARNING/ERROR BOXES === */
+        .stAlert {
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.8) 0%, rgba(15, 23, 41, 0.9) 100%);
+            border-left-width: 4px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stAlert p {
+            color: #e0e0e0 !important;
         }
         
         /* === SCROLLBAR === */
@@ -568,28 +473,29 @@ def set_futuristic_robotic_theme():
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #00ffff 0%, #00bfff 100%);
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
         }
         
-        /* === GENERAL TEXT COLOR === */
-        p, label, span, div {
-            color: #00ffff !important;
+        /* === LOADING SPINNER === */
+        .stSpinner > div {
+            border-color: #00ffff transparent #00ffff transparent !important;
         }
         
-        /* === ANIMATION FOR LOGO === */
-        @keyframes logoGlow {
-            0%, 100% {
-                filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
-            }
-            50% {
-                filter: drop-shadow(0 0 30px rgba(0, 255, 255, 1))
-                        drop-shadow(0 0 50px rgba(138, 43, 226, 0.5));
-            }
-        }
-        
+        /* === LOGO STYLING === */
         img {
-            animation: logoGlow 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
+        }
+        
+        /* === CHAT MESSAGES === */
+        .stChatMessage {
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.6) 0%, rgba(15, 23, 41, 0.8) 100%);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+        }
+        
+        .stChatMessage p {
+            color: #e0e0e0 !important;
         }
         
         </style>
