@@ -205,296 +205,101 @@ DEFAULT_ROLE_REQUIREMENTS: Dict[str, str] = {
 
 # --- FUNGSI UNTUK MENGATUR TEMA ---
 def set_blue_gradient_theme():
-    """Blue Gradient Theme - MAXIMUM TEXT VISIBILITY"""
+    """Simple theme - dark bg = light text, light bg = dark text"""
     st.markdown("""
         <style>
-        /* === BACKGROUND === */
+        /* Background gradient */
         .stApp {
             background: linear-gradient(135deg, #1a4d6d 0%, #4a90c4 50%, #d4e8f5 100%);
-            font-family: 'Inter', sans-serif;
         }
         
-        /* === FIX WHITE HEADER === */
+        /* Header - DARK bg */
         header[data-testid="stHeader"] {
-            background-color: #1a4d6d !important;
+            background: #1a4d6d !important;
         }
         
-        /* === SIDEBAR - MAXIMUM SPECIFICITY === */
+        /* SIDEBAR - DARK bg → LIGHT text */
         section[data-testid="stSidebar"] {
-            background-color: rgba(26, 77, 109, 0.95) !important;
-            border-right: 2px solid #4a90c4;
+            background: #1a4d6d !important;
         }
         
-        /* SUPER STRONG: ALL sidebar text WHITE */
-        section[data-testid="stSidebar"] *,
-        section[data-testid="stSidebar"] div,
-        section[data-testid="stSidebar"] span,
-        section[data-testid="stSidebar"] p,
-        section[data-testid="stSidebar"] label,
-        section[data-testid="stSidebar"] button,
-        section[data-testid="stSidebar"] .stMarkdown,
-        section[data-testid="stSidebar"] .stMarkdown *,
-        section[data-testid="stSidebar"] .element-container,
-        section[data-testid="stSidebar"] .element-container * {
+        section[data-testid="stSidebar"] * {
             color: #ffffff !important;
         }
         
-        /* Headers in sidebar - BRIGHT CYAN */
-        section[data-testid="stSidebar"] h1,
-        section[data-testid="stSidebar"] h2,
-        section[data-testid="stSidebar"] h3,
-        section[data-testid="stSidebar"] .stMarkdown h1,
-        section[data-testid="stSidebar"] .stMarkdown h2,
-        section[data-testid="stSidebar"] .stMarkdown h3 {
-            color: #a8d8ea !important;
-            font-weight: 700 !important;
-        }
-        
-        /* Expander headers in sidebar - WHITE */
-        section[data-testid="stSidebar"] .streamlit-expanderHeader,
-        section[data-testid="stSidebar"] .streamlit-expanderHeader *,
-        section[data-testid="stSidebar"] .streamlit-expanderHeader p,
-        section[data-testid="stSidebar"] .streamlit-expanderHeader span {
-            color: #ffffff !important;
-            font-weight: 600 !important;
-        }
-        
-        /* Input labels in sidebar - WHITE */
-        section[data-testid="stSidebar"] .stTextInput label,
-        section[data-testid="stSidebar"] .stSelectbox label,
-        section[data-testid="stSidebar"] .stCheckbox label {
-            color: #ffffff !important;
-            font-weight: 600 !important;
-        }
-        
-        /* Buttons in sidebar - ensure visibility */
-        section[data-testid="stSidebar"] .stButton button {
-            color: #ffffff !important;
-            background: rgba(74, 144, 196, 0.3) !important;
-            border: 1px solid #4a90c4 !important;
-        }
-        
-        /* === MAIN CONTENT === */
-        .main h1, .main h2, .main h3 {
+        /* MAIN AREA - LIGHT bg → DARK text */
+        .main * {
             color: #1a4d6d !important;
-            font-weight: 700 !important;
         }
         
-        .main p,
-        .main div,
-        .main span {
-            color: #0d2635 !important;
-        }
-        
-        .main label {
-            color: #1a4d6d !important;
-            font-weight: 600 !important;
-        }
-        
-        /* === EXPANDER IN MAIN AREA === */
-        .main .streamlit-expanderHeader {
-            background: rgba(26, 77, 109, 0.9) !important;
-            border: 2px solid #4a90c4 !important;
-            border-radius: 8px !important;
-            padding: 14px 18px !important;
-        }
-        
-        .main .streamlit-expanderHeader *,
-        .main .streamlit-expanderHeader p,
-        .main .streamlit-expanderHeader span {
+        /* BUTTONS - DARK bg → LIGHT text */
+        .stButton button {
+            background: #1a4d6d !important;
             color: #ffffff !important;
-            font-weight: 600 !important;
-        }
-        
-        .main .streamlit-expanderContent {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #4a90c4;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            padding: 20px !important;
-        }
-        
-        .main .streamlit-expanderContent *,
-        .main .streamlit-expanderContent p,
-        .main .streamlit-expanderContent li,
-        .main .streamlit-expanderContent span {
-            color: #0d2635 !important;
-        }
-        
-        /* === BUTTONS === */
-        .stButton > button[kind="primary"] {
-            background: linear-gradient(135deg, #1a4d6d 0%, #4a90c4 100%) !important;
-            color: white !important;
             border: 2px solid #4a90c4;
             border-radius: 8px;
-            padding: 12px 28px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            padding: 12px 24px;
         }
         
-        .stButton > button[kind="primary"]:hover {
-            background: linear-gradient(135deg, #2a5d7d 0%, #5aa0d4 100%) !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(26, 77, 109, 0.3);
-        }
-        
-        .stButton > button[kind="secondary"] {
-            background: rgba(255, 255, 255, 0.95) !important;
-            color: #1a4d6d !important;
-            border: 2px solid #4a90c4;
-            border-radius: 8px;
-            padding: 10px 24px;
-            font-weight: 600;
-        }
-        
-        .stButton > button[kind="secondary"]:hover {
-            background: white !important;
-            box-shadow: 0 4px 12px rgba(74, 144, 196, 0.3);
-            transform: translateY(-2px);
-        }
-        
-        /* === DOWNLOAD BUTTON === */
-        .stDownloadButton > button {
-            background: linear-gradient(135deg, #4a90c4 0%, #7ab5d9 100%) !important;
-            color: white !important;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 28px;
-            font-weight: 600;
-        }
-        
-        .stDownloadButton > button:hover {
-            background: linear-gradient(135deg, #5aa0d4 0%, #8ac5e9 100%) !important;
-            transform: translateY(-2px);
-        }
-        
-        /* === METRICS === */
+        /* CARDS - LIGHT bg → DARK text */
         div[data-testid="stMetric"] {
-            background: rgba(255, 255, 255, 0.95) !important;
+            background: #ffffff !important;
             border: 2px solid #4a90c4;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
-        [data-testid="stMetricValue"] {
+        div[data-testid="stMetric"] * {
             color: #1a4d6d !important;
-            font-size: 2.5rem !important;
-            font-weight: 800 !important;
         }
         
-        [data-testid="stMetricLabel"] {
-            color: #0d2635 !important;
-            font-weight: 600 !important;
-        }
-        
-        /* === TABS === */
-        .stTabs [data-baseweb="tab"] {
-            background: rgba(255, 255, 255, 0.8) !important;
-            border: 2px solid rgba(74, 144, 196, 0.3);
-            border-radius: 8px 8px 0 0;
-            color: #1a4d6d !important;
-            padding: 12px 24px;
-            font-weight: 600;
-        }
-        
-        .stTabs [data-baseweb="tab"]:hover {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border-color: #4a90c4;
-        }
-        
-        .stTabs [data-baseweb="tab"][aria-selected="true"] {
-            background: white !important;
-            border-color: #4a90c4 !important;
-            color: #1a4d6d !important;
-            font-weight: 700;
-        }
-        
-        /* === INPUTS === */
-        .stTextInput > div > div > input,
-        .stTextArea > div > div > textarea {
-            background: rgba(255, 255, 255, 0.95) !important;
+        /* EXPANDER HEADER - DARK bg → LIGHT text */
+        .streamlit-expanderHeader {
+            background: #1a4d6d !important;
             border: 2px solid #4a90c4 !important;
-            border-radius: 8px !important;
-            color: #0d2635 !important;
-            font-weight: 500 !important;
         }
         
-        .stSelectbox > div > div {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #4a90c4 !important;
-            border-radius: 8px !important;
-            color: #0d2635 !important;
-        }
-        
-        .stTextInput > div > div > input:focus,
-        .stTextArea > div > div > textarea:focus {
-            border-color: #1a4d6d !important;
-            box-shadow: 0 0 0 2px rgba(74, 144, 196, 0.2) !important;
-        }
-        
-        /* === FILE UPLOADER === */
-        [data-testid="stFileUploader"] {
-            background: rgba(255, 255, 255, 0.9) !important;
-            border: 2px dashed #4a90c4;
-            border-radius: 12px;
-            padding: 24px;
-        }
-        
-        [data-testid="stFileUploader"] label {
-            color: #1a4d6d !important;
-            font-weight: 600 !important;
-        }
-        
-        /* === ALERTS === */
-        .stAlert {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border-radius: 8px;
-        }
-        
-        .stAlert p,
-        .stAlert div,
-        .stAlert span {
-            color: #0d2635 !important;
-        }
-        
-        /* === DATAFRAME === */
-        [data-testid="stDataFrame"] {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #4a90c4;
-            border-radius: 8px;
-        }
-        
-        /* === CHECKBOX & RADIO === */
-        .stCheckbox label,
-        .stRadio label {
-            color: #0d2635 !important;
-            font-weight: 500 !important;
-        }
-        
-        /* Override for sidebar checkboxes */
-        section[data-testid="stSidebar"] .stCheckbox label,
-        section[data-testid="stSidebar"] .stRadio label {
+        .streamlit-expanderHeader * {
             color: #ffffff !important;
         }
         
-        /* === SCROLLBAR === */
-        ::-webkit-scrollbar {
-            width: 10px;
+        /* EXPANDER CONTENT - LIGHT bg → DARK text */
+        .streamlit-expanderContent {
+            background: #ffffff !important;
+            border: 2px solid #4a90c4;
         }
         
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 5px;
+        .streamlit-expanderContent * {
+            color: #1a4d6d !important;
         }
         
-        ::-webkit-scrollbar-thumb {
-            background: #4a90c4;
-            border-radius: 5px;
+        /* TABS - LIGHT bg → DARK text */
+        .stTabs [data-baseweb="tab"] {
+            background: #ffffff !important;
+            color: #1a4d6d !important;
         }
         
-        ::-webkit-scrollbar-thumb:hover {
-            background: #1a4d6d;
+        /* ACTIVE TAB - DARK bg → LIGHT text */
+        .stTabs [data-baseweb="tab"][aria-selected="true"] {
+            background: #1a4d6d !important;
+            color: #ffffff !important;
+        }
+        
+        /* INPUTS - LIGHT bg → DARK text */
+        .stTextInput input,
+        .stTextArea textarea {
+            background: #ffffff !important;
+            color: #1a4d6d !important;
+            border: 2px solid #4a90c4 !important;
+        }
+        
+        /* SIDEBAR ALERTS - DARK bg → LIGHT text */
+        section[data-testid="stSidebar"] .stAlert {
+            background: rgba(74, 144, 196, 0.3) !important;
+        }
+        
+        section[data-testid="stSidebar"] .stAlert * {
+            color: #ffffff !important;
         }
         
         </style>
