@@ -283,6 +283,17 @@ def set_futuristic_purple_theme():
             color: #FFFFFF !important;
         }
         
+        /* === REMOVE ALL WHITE BACKGROUNDS === */
+        .element-container,
+        .stMarkdown,
+        div[data-testid="stVerticalBlock"],
+        div[data-testid="stHorizontalBlock"],
+        div[data-testid="column"],
+        .row-widget,
+        .stColumn {
+            background: transparent !important;
+        }
+        
         /* === BUTTONS - Ocean Blue === */
         .stButton > button[kind="primary"] {
             background: linear-gradient(135deg, #0097A7 0%, #00BCD4 100%) !important;
@@ -300,7 +311,8 @@ def set_futuristic_purple_theme():
         }
         
         /* === SECONDARY BUTTON - Darker Ocean === */
-        .stButton > button[kind="secondary"] {
+        .stButton > button[kind="secondary"],
+        .stButton > button:not([kind="primary"]) {
             background: linear-gradient(135deg, #00838F 0%, #006064 100%) !important;
             color: #ffffff !important;
             border: 2px solid #26C6DA;
@@ -342,8 +354,8 @@ def set_futuristic_purple_theme():
         /* === EXPANDER - Ocean Background === */
         .streamlit-expanderHeader {
             background: linear-gradient(90deg, 
-                rgba(0, 151, 167, 0.4) 0%, 
-                rgba(0, 131, 143, 0.4) 100%) !important;
+                rgba(0, 151, 167, 0.5) 0%, 
+                rgba(0, 131, 143, 0.5) 100%) !important;
             border: 2px solid #4DD0E1 !important;
             border-radius: 8px !important;
         }
@@ -355,8 +367,8 @@ def set_futuristic_purple_theme():
         
         .streamlit-expanderContent {
             background: linear-gradient(135deg, 
-                rgba(0, 131, 143, 0.35) 0%, 
-                rgba(0, 96, 100, 0.35) 100%) !important;
+                rgba(0, 131, 143, 0.4) 0%, 
+                rgba(0, 96, 100, 0.4) 100%) !important;
             border: 2px solid #4DD0E1;
             border-top: none;
             padding: 20px !important;
@@ -370,62 +382,147 @@ def set_futuristic_purple_theme():
         }
         
         /* === TABS === */
+        .stTabs [data-baseweb="tab-list"] {
+            background: transparent !important;
+        }
+        
         .stTabs [data-baseweb="tab"] {
-            background: rgba(0, 131, 143, 0.3) !important;
-            border: 2px solid rgba(77, 208, 225, 0.3);
+            background: rgba(0, 131, 143, 0.4) !important;
+            border: 2px solid rgba(77, 208, 225, 0.4);
             color: #FFFFFF !important;
         }
         
         .stTabs [data-baseweb="tab"][aria-selected="true"] {
             background: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 100%) !important;
             color: #ffffff !important;
+            border: 2px solid #FFB6C1 !important;
+        }
+        
+        .stTabs [data-baseweb="tab-panel"] {
+            background: transparent !important;
         }
         
         /* === INPUTS - Ocean Background === */
+        .stTextInput > div > div,
         .stTextInput input,
-        .stTextArea textarea {
-            background: rgba(0, 96, 100, 0.4) !important;
+        .stTextArea textarea,
+        .stTextArea > div > div {
+            background: rgba(0, 96, 100, 0.5) !important;
             border: 2px solid #4DD0E1 !important;
             color: #ffffff !important;
         }
         
         /* === SELECTBOX - Ocean Background === */
-        .stSelectbox > div > div {
-            background: rgba(0, 96, 100, 0.4) !important;
+        .stSelectbox > div > div,
+        .stSelectbox select,
+        .stSelectbox div[data-baseweb="select"] {
+            background: rgba(0, 96, 100, 0.5) !important;
             border: 2px solid #4DD0E1 !important;
             color: #ffffff !important;
         }
         
         /* === FILE UPLOADER - Ocean Background === */
-        .stFileUploader {
-            background: rgba(0, 131, 143, 0.3) !important;
+        .stFileUploader,
+        .stFileUploader > div,
+        section[data-testid="stFileUploadDropzone"] {
+            background: rgba(0, 131, 143, 0.4) !important;
             border: 2px dashed #4DD0E1 !important;
             border-radius: 10px;
         }
         
+        /* === DATAFRAME / TABLE - Ocean Background === */
+        .stDataFrame,
+        .stDataFrame > div,
+        .dataframe,
+        div[data-testid="stDataFrame"],
+        div[data-testid="stTable"] {
+            background: rgba(0, 96, 100, 0.4) !important;
+        }
+        
+        .dataframe thead tr th {
+            background: linear-gradient(135deg, #0097A7, #00BCD4) !important;
+            color: #ffffff !important;
+            border-bottom: 2px solid #4DD0E1 !important;
+        }
+        
+        .dataframe tbody tr {
+            background: rgba(0, 131, 143, 0.3) !important;
+        }
+        
+        .dataframe tbody tr:nth-child(even) {
+            background: rgba(0, 96, 100, 0.5) !important;
+        }
+        
+        .dataframe tbody td {
+            color: #ffffff !important;
+            border-bottom: 1px solid rgba(77, 208, 225, 0.2) !important;
+        }
+        
+        /* === CHAT MESSAGE - Ocean Background === */
+        .stChatMessage {
+            background: rgba(0, 131, 143, 0.4) !important;
+            border: 1px solid #4DD0E1 !important;
+            border-radius: 10px;
+        }
+        
         /* === INFO/WARNING/ERROR BOXES - Ocean Tones === */
-        .stInfo {
-            background: linear-gradient(135deg, rgba(0, 188, 212, 0.3), rgba(0, 151, 167, 0.3)) !important;
-            border-left: 5px solid #00BCD4 !important;
+        .stAlert,
+        div[data-baseweb="notification"] {
+            border-radius: 8px !important;
+        }
+        
+        .stInfo,
+        div[data-baseweb="notification"][kind="info"] {
+            background: linear-gradient(135deg, rgba(0, 188, 212, 0.4), rgba(0, 151, 167, 0.4)) !important;
+            border: 2px solid #00BCD4 !important;
             color: #ffffff !important;
         }
         
-        .stWarning {
-            background: linear-gradient(135deg, rgba(255, 183, 77, 0.3), rgba(255, 167, 38, 0.3)) !important;
-            border-left: 5px solid #FFB74D !important;
+        .stWarning,
+        div[data-baseweb="notification"][kind="warning"] {
+            background: linear-gradient(135deg, rgba(255, 183, 77, 0.4), rgba(255, 167, 38, 0.4)) !important;
+            border: 2px solid #FFB74D !important;
             color: #ffffff !important;
         }
         
-        .stError {
-            background: linear-gradient(135deg, rgba(239, 83, 80, 0.3), rgba(229, 57, 53, 0.3)) !important;
-            border-left: 5px solid #EF5350 !important;
+        .stError,
+        div[data-baseweb="notification"][kind="error"] {
+            background: linear-gradient(135deg, rgba(239, 83, 80, 0.4), rgba(229, 57, 53, 0.4)) !important;
+            border: 2px solid #EF5350 !important;
             color: #ffffff !important;
         }
         
-        .stSuccess {
-            background: linear-gradient(135deg, rgba(0, 230, 118, 0.3), rgba(0, 200, 83, 0.3)) !important;
-            border-left: 5px solid #00E676 !important;
+        .stSuccess,
+        div[data-baseweb="notification"][kind="success"] {
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.4), rgba(0, 200, 83, 0.4)) !important;
+            border: 2px solid #00E676 !important;
             color: #ffffff !important;
+        }
+        
+        /* Make sure alert text is white */
+        .stAlert *,
+        div[data-baseweb="notification"] * {
+            color: #ffffff !important;
+        }
+        
+        /* === PROGRESS BAR === */
+        .stProgress > div > div {
+            background: rgba(0, 96, 100, 0.5) !important;
+        }
+        
+        .stProgress > div > div > div {
+            background: linear-gradient(90deg, #00BCD4, #26C6DA) !important;
+        }
+        
+        /* === SPINNER === */
+        .stSpinner > div {
+            border-top-color: #00BCD4 !important;
+        }
+        
+        /* === CHECKBOX & RADIO === */
+        .stCheckbox,
+        .stRadio {
+            background: transparent !important;
         }
         
         /* === SCROLLBAR === */
@@ -438,6 +535,25 @@ def set_futuristic_purple_theme():
             background: linear-gradient(180deg, #26C6DA 0%, #00BCD4 100%);
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(77, 208, 225, 0.5);
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 96, 100, 0.2);
+        }
+        
+        /* === CODE BLOCKS === */
+        .stCodeBlock,
+        code {
+            background: rgba(0, 96, 100, 0.5) !important;
+            color: #4DD0E1 !important;
+            border: 1px solid #26C6DA !important;
+        }
+        
+        /* === JSON/PRE === */
+        pre {
+            background: rgba(0, 96, 100, 0.5) !important;
+            color: #ffffff !important;
+            border: 1px solid #4DD0E1 !important;
         }
         
         /* Ocean corners - subtle waves */
