@@ -1,16 +1,14 @@
-# Requirements untuk AI Recruitment System
-# Install dengan: pip install -r requirements.txt
+# Core Dependencies
+streamlit>=1.31.0
+phidata>=2.4.0
+openai>=1.12.0
+PyPDF2>=3.0.1
+pandas>=2.2.0
+openpyxl>=3.1.2
+requests>=2.31.0
 
-streamlit==1.31.0
-phidata==2.4.0
-openai==1.12.0
-PyPDF2==3.0.1
-pandas==2.2.0
-openpyxl==3.1.2
-requests==2.31.0
-
-# Optional - untuk OCR (jika diperlukan)
-# Uncomment jika ingin menggunakan OCR
-# pdf2image==1.16.3
-# pytesseract==0.3.10
-# Pillow==10.2.0
+# Optional OCR Support (commented out for faster deployment)
+# Uncomment if you need OCR for scanned PDFs
+# pdf2image>=1.16.0
+# pytesseract>=0.3.10
+# Pillow>=10.0.0
