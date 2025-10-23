@@ -1,5 +1,5 @@
 def set_futuristic_purple_theme():
-    """Ocean Clean Theme - Simple & Stable"""
+    """Ocean Light Theme - Soft & Friendly"""
     st.markdown("""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -7,100 +7,214 @@ def set_futuristic_purple_theme():
         /* ===== MAIN BACKGROUND ===== */
         .stApp {
             background: linear-gradient(180deg, 
-                #0891B2 0%,
-                #0E7490 25%,
-                #155E75 50%,
-                #164E63 75%,
-                #0F3B47 100%
+                #67e8f9 0%,
+                #22d3ee 20%,
+                #06b6d4 40%,
+                #0891b2 60%,
+                #0e7490 100%
             );
             font-family: 'Inter', sans-serif;
         }
         
         /* ===== SIDEBAR ===== */
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #0891B2 0%, #0E7490 100%);
+            background: linear-gradient(180deg, #22d3ee 0%, #0891b2 100%);
         }
         
         [data-testid="stSidebar"] * {
             color: #ffffff;
         }
         
-        /* ===== MAIN CONTENT TEXT ===== */
-        .main * {
+        [data-testid="stSidebar"] h1,
+        [data-testid="stSidebar"] h2,
+        [data-testid="stSidebar"] h3 {
+            color: #ffffff;
+            font-weight: 700;
+        }
+        
+        /* ===== MAIN CONTENT ===== */
+        .main h1, .main h2, .main h3 {
+            color: #ffffff;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .main p, .main div, .main span, .main label {
             color: #ffffff;
         }
         
         /* ===== BUTTONS ===== */
         .stButton > button {
-            background: linear-gradient(135deg, #06B6D4, #0891B2);
+            background: linear-gradient(135deg, #f472b6, #ec4899);
             color: white;
             border: none;
             border-radius: 8px;
             font-weight: 600;
             padding: 12px 24px;
+            box-shadow: 0 4px 8px rgba(236, 72, 153, 0.3);
         }
         
         .stButton > button:hover {
-            background: linear-gradient(135deg, #22D3EE, #06B6D4);
-            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+            background: linear-gradient(135deg, #ec4899, #db2777);
+            box-shadow: 0 6px 12px rgba(236, 72, 153, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        /* Secondary buttons */
+        .stButton > button[kind="secondary"] {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+        }
+        
+        /* Download button */
+        .stDownloadButton > button {
+            background: linear-gradient(135deg, #fb923c, #f97316);
+            color: white;
+            border: none;
+            font-weight: 600;
         }
         
         /* ===== INPUTS ===== */
         .stTextInput input,
-        .stTextArea textarea,
-        .stSelectbox select {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(6, 182, 212, 0.5);
+        .stTextArea textarea {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            border-radius: 6px;
+            border-radius: 8px;
+        }
+        
+        .stTextInput input::placeholder,
+        .stTextArea textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .stSelectbox select {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
         }
         
         /* ===== EXPANDERS ===== */
         .streamlit-expanderHeader {
-            background: rgba(6, 182, 212, 0.2);
-            border: 1px solid rgba(6, 182, 212, 0.5);
-            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
             color: white;
         }
         
         .streamlit-expanderContent {
-            background: rgba(6, 182, 212, 0.1);
-            border: 1px solid rgba(6, 182, 212, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-top: none;
+            color: white;
         }
         
         /* ===== TABS ===== */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 8px;
+        }
+        
         .stTabs [data-baseweb="tab"] {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px 8px 0 0;
             color: white;
-            background: rgba(6, 182, 212, 0.2);
+            font-weight: 600;
         }
         
         .stTabs [data-baseweb="tab"][aria-selected="true"] {
-            background: linear-gradient(135deg, #F472B6, #EC4899);
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            border: 1px solid #ec4899;
             color: white;
         }
         
         /* ===== METRICS ===== */
         [data-testid="stMetric"] {
-            background: rgba(6, 182, 212, 0.2);
-            border: 1px solid rgba(6, 182, 212, 0.5);
-            border-radius: 8px;
-            padding: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        [data-testid="stMetricValue"] {
+            color: white;
+            font-weight: 700;
+        }
+        
+        [data-testid="stMetricLabel"] {
+            color: rgba(255, 255, 255, 0.8);
         }
         
         /* ===== DATAFRAMES ===== */
         .dataframe {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             color: white;
         }
         
         .dataframe thead tr th {
-            background: #0891B2;
+            background: rgba(255, 255, 255, 0.25);
             color: white;
+            font-weight: 700;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        .dataframe tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
         }
         
         /* ===== ALERTS ===== */
-        .stAlert {
+        .stInfo {
+            background: rgba(14, 165, 233, 0.3);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #0ea5e9;
             color: white;
+        }
+        
+        .stSuccess {
+            background: rgba(34, 197, 94, 0.3);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #22c55e;
+            color: white;
+        }
+        
+        .stWarning {
+            background: rgba(251, 146, 60, 0.3);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #fb923c;
+            color: white;
+        }
+        
+        .stError {
+            background: rgba(239, 68, 68, 0.3);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #ef4444;
+            color: white;
+        }
+        
+        /* ===== FILE UPLOADER ===== */
+        [data-testid="stFileUploadDropzone"] {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+        }
+        
+        /* ===== PROGRESS BAR ===== */
+        .stProgress > div > div {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .stProgress > div > div > div {
+            background: linear-gradient(90deg, #f472b6, #ec4899);
         }
         
         </style>
