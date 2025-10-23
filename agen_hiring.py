@@ -283,7 +283,7 @@ def set_futuristic_purple_theme():
             color: #FFFFFF !important;
         }
         
-        /* === BUTTONS - Coral Gradient === */
+        /* === BUTTONS - Ocean Blue === */
         .stButton > button[kind="primary"] {
             background: linear-gradient(135deg, #0097A7 0%, #00BCD4 100%) !important;
             color: #ffffff !important;
@@ -299,6 +299,16 @@ def set_futuristic_purple_theme():
             transform: translateY(-3px);
         }
         
+        /* === SECONDARY BUTTON - Darker Ocean === */
+        .stButton > button[kind="secondary"] {
+            background: linear-gradient(135deg, #00838F 0%, #006064 100%) !important;
+            color: #ffffff !important;
+            border: 2px solid #26C6DA;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            padding: 14px 32px;
+        }
+        
         /* === DOWNLOAD BUTTON === */
         .stDownloadButton > button,
         .stDownloadButton > button * {
@@ -308,11 +318,11 @@ def set_futuristic_purple_theme():
             font-weight: 700 !important;
         }
         
-        /* === METRICS - Ocean Blue === */
+        /* === METRICS - Ocean Blue Background === */
         div[data-testid="stMetric"] {
             background: linear-gradient(135deg, 
-                rgba(0, 188, 212, 0.3) 0%, 
-                rgba(0, 151, 167, 0.3) 100%) !important;
+                rgba(0, 131, 143, 0.5) 0%, 
+                rgba(0, 96, 100, 0.5) 100%) !important;
             border: 2px solid #4DD0E1;
             border-radius: 12px;
             padding: 24px;
@@ -329,11 +339,11 @@ def set_futuristic_purple_theme():
             color: #4DD0E1 !important;
         }
         
-        /* === EXPANDER === */
+        /* === EXPANDER - Ocean Background === */
         .streamlit-expanderHeader {
             background: linear-gradient(90deg, 
-                rgba(0, 188, 212, 0.3) 0%, 
-                rgba(0, 151, 167, 0.3) 100%) !important;
+                rgba(0, 151, 167, 0.4) 0%, 
+                rgba(0, 131, 143, 0.4) 100%) !important;
             border: 2px solid #4DD0E1 !important;
             border-radius: 8px !important;
         }
@@ -345,8 +355,8 @@ def set_futuristic_purple_theme():
         
         .streamlit-expanderContent {
             background: linear-gradient(135deg, 
-                rgba(0, 188, 212, 0.25) 0%, 
-                rgba(0, 151, 167, 0.25) 100%) !important;
+                rgba(0, 131, 143, 0.35) 0%, 
+                rgba(0, 96, 100, 0.35) 100%) !important;
             border: 2px solid #4DD0E1;
             border-top: none;
             padding: 20px !important;
@@ -361,7 +371,7 @@ def set_futuristic_purple_theme():
         
         /* === TABS === */
         .stTabs [data-baseweb="tab"] {
-            background: rgba(0, 188, 212, 0.2) !important;
+            background: rgba(0, 131, 143, 0.3) !important;
             border: 2px solid rgba(77, 208, 225, 0.3);
             color: #FFFFFF !important;
         }
@@ -371,15 +381,59 @@ def set_futuristic_purple_theme():
             color: #ffffff !important;
         }
         
-        /* === INPUTS === */
+        /* === INPUTS - Ocean Background === */
         .stTextInput input,
         .stTextArea textarea {
-            background: rgba(0, 188, 212, 0.2) !important;
+            background: rgba(0, 96, 100, 0.4) !important;
             border: 2px solid #4DD0E1 !important;
             color: #ffffff !important;
         }
         
+        /* === SELECTBOX - Ocean Background === */
+        .stSelectbox > div > div {
+            background: rgba(0, 96, 100, 0.4) !important;
+            border: 2px solid #4DD0E1 !important;
+            color: #ffffff !important;
+        }
+        
+        /* === FILE UPLOADER - Ocean Background === */
+        .stFileUploader {
+            background: rgba(0, 131, 143, 0.3) !important;
+            border: 2px dashed #4DD0E1 !important;
+            border-radius: 10px;
+        }
+        
+        /* === INFO/WARNING/ERROR BOXES - Ocean Tones === */
+        .stInfo {
+            background: linear-gradient(135deg, rgba(0, 188, 212, 0.3), rgba(0, 151, 167, 0.3)) !important;
+            border-left: 5px solid #00BCD4 !important;
+            color: #ffffff !important;
+        }
+        
+        .stWarning {
+            background: linear-gradient(135deg, rgba(255, 183, 77, 0.3), rgba(255, 167, 38, 0.3)) !important;
+            border-left: 5px solid #FFB74D !important;
+            color: #ffffff !important;
+        }
+        
+        .stError {
+            background: linear-gradient(135deg, rgba(239, 83, 80, 0.3), rgba(229, 57, 53, 0.3)) !important;
+            border-left: 5px solid #EF5350 !important;
+            color: #ffffff !important;
+        }
+        
+        .stSuccess {
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.3), rgba(0, 200, 83, 0.3)) !important;
+            border-left: 5px solid #00E676 !important;
+            color: #ffffff !important;
+        }
+        
         /* === SCROLLBAR === */
+        ::-webkit-scrollbar {
+            width: 10px;
+            background: rgba(0, 96, 100, 0.3);
+        }
+        
         ::-webkit-scrollbar-thumb {
             background: linear-gradient(180deg, #26C6DA 0%, #00BCD4 100%);
             border-radius: 10px;
