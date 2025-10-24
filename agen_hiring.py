@@ -1363,6 +1363,8 @@ def main():
             --earth-brown: #8D6E63;
             --sky-blue: #81D4FA;
             --sand-beige: #EFEBE9;
+            --forest-green: #388E3C;
+            --leaf-green: #7CB342;
         }
         
         /* Main container */
@@ -1378,6 +1380,28 @@ def main():
         
         section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
             color: #2E7D32;
+        }
+        
+        /* Sidebar Expanders - Jarak konsisten */
+        section[data-testid="stSidebar"] [data-testid="stExpander"] {
+            margin-top: 15px !important;
+            margin-bottom: 15px !important;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(200, 230, 201, 0.5));
+            border-radius: 10px;
+            border: 2px solid rgba(76, 175, 80, 0.3);
+            box-shadow: 2px 2px 6px rgba(76, 175, 80, 0.2);
+        }
+        
+        section[data-testid="stSidebar"] .streamlit-expanderHeader {
+            background: linear-gradient(145deg, #c8e6c9, #a5d6a7);
+            border-radius: 8px;
+            color: var(--dark-green);
+            font-weight: 600;
+            padding: 10px 15px;
+        }
+        
+        section[data-testid="stSidebar"] .streamlit-expanderHeader:hover {
+            background: linear-gradient(145deg, #a5d6a7, #81c784);
         }
         
         /* Headers */
@@ -1453,42 +1477,69 @@ def main():
             font-weight: 600;
         }
         
-        /* Metrics */
+        /* Metrics - HUD Nature Theme */
         [data-testid="stMetricValue"] {
-            color: var(--dark-green);
+            color: var(--forest-green) !important;
             font-size: 2em;
             font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        [data-testid="stMetricLabel"] {
+            color: var(--dark-green) !important;
+            font-weight: 600;
+        }
+        
+        [data-testid="stMetricDelta"] {
+            color: var(--leaf-green) !important;
+        }
+        
+        div[data-testid="metric-container"] {
+            background: linear-gradient(145deg, rgba(200, 230, 201, 0.3), rgba(165, 214, 167, 0.2));
+            border: 2px solid var(--light-green);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 3px 3px 8px rgba(76, 175, 80, 0.15);
         }
         
         /* Progress bar */
         .stProgress > div > div > div > div {
-            background: linear-gradient(90deg, #66bb6a, #4caf50);
+            background: linear-gradient(90deg, #7cb342, #66bb6a, #4caf50);
         }
         
-        /* Info/Success/Warning/Error boxes */
+        /* Info/Success/Warning/Error boxes - Nature HUD */
         .stAlert {
-            border-radius: 10px;
+            border-radius: 12px;
             border-left: 5px solid;
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
         }
         
+        /* Info - Sky Blue untuk informasi */
         [data-baseweb="notification"][kind="info"] {
-            background-color: rgba(129, 212, 250, 0.2);
-            border-left-color: #81D4FA;
+            background: linear-gradient(145deg, rgba(129, 212, 250, 0.15), rgba(100, 181, 246, 0.1));
+            border-left-color: #29B6F6;
+            color: #01579B;
         }
         
+        /* Success - Hijau alam */
         [data-baseweb="notification"][kind="success"] {
-            background-color: rgba(76, 175, 80, 0.2);
+            background: linear-gradient(145deg, rgba(76, 175, 80, 0.15), rgba(102, 187, 106, 0.1));
             border-left-color: #4CAF50;
+            color: #1B5E20;
         }
         
+        /* Warning - Kuning matahari/autumn */
         [data-baseweb="notification"][kind="warning"] {
-            background-color: rgba(255, 152, 0, 0.2);
-            border-left-color: #FF9800;
+            background: linear-gradient(145deg, rgba(255, 193, 7, 0.15), rgba(255, 179, 0, 0.1));
+            border-left-color: #FFA000;
+            color: #E65100;
         }
         
+        /* Error - Merah natural (buah/bunga) */
         [data-baseweb="notification"][kind="error"] {
-            background-color: rgba(211, 47, 47, 0.2);
-            border-left-color: #D32F2F;
+            background: linear-gradient(145deg, rgba(244, 67, 54, 0.15), rgba(229, 57, 53, 0.1));
+            border-left-color: #E53935;
+            color: #B71C1C;
         }
         
         /* File uploader */
@@ -1496,12 +1547,35 @@ def main():
             background: linear-gradient(145deg, #f1f8f4, #e8f5e9);
             border: 2px dashed var(--primary-green);
             border-radius: 10px;
+            transition: all 0.3s ease;
         }
         
-        /* Dataframe */
+        [data-testid="stFileUploadDropzone"]:hover {
+            background: linear-gradient(145deg, #e8f5e9, #c8e6c9);
+            border-color: var(--forest-green);
+        }
+        
+        /* Dataframe - Nature themed table */
         [data-testid="stDataFrame"] {
             border: 2px solid var(--light-green);
             border-radius: 10px;
+        }
+        
+        [data-testid="stDataFrame"] table {
+            background: linear-gradient(145deg, #ffffff, #f1f8f4);
+        }
+        
+        [data-testid="stDataFrame"] thead tr {
+            background: linear-gradient(145deg, #66bb6a, #4caf50);
+            color: white;
+        }
+        
+        [data-testid="stDataFrame"] tbody tr:nth-child(even) {
+            background-color: rgba(200, 230, 201, 0.1);
+        }
+        
+        [data-testid="stDataFrame"] tbody tr:hover {
+            background-color: rgba(76, 175, 80, 0.1);
         }
         
         /* Chat messages */
@@ -1511,6 +1585,17 @@ def main():
             padding: 15px;
             margin: 10px 0;
             box-shadow: 2px 2px 5px rgba(76, 175, 80, 0.1);
+            border-left: 4px solid var(--primary-green);
+        }
+        
+        .stChatMessage[data-testid="user-message"] {
+            background: linear-gradient(145deg, #c8e6c9, #a5d6a7);
+            border-left-color: var(--forest-green);
+        }
+        
+        .stChatMessage[data-testid="assistant-message"] {
+            background: linear-gradient(145deg, #ffffff, #f1f8f4);
+            border-left-color: var(--leaf-green);
         }
         
         /* Scrollbar */
@@ -1542,14 +1627,147 @@ def main():
             margin: 10px 0;
         }
         
-        /* Download button */
+        /* Download button - Nature themed */
         .stDownloadButton>button {
-            background: linear-gradient(145deg, #81d4fa, #4fc3f7);
+            background: linear-gradient(145deg, #7cb342, #689f38);
             color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            box-shadow: 4px 4px 8px rgba(124, 179, 66, 0.3);
+            transition: all 0.3s ease;
         }
         
         .stDownloadButton>button:hover {
-            background: linear-gradient(145deg, #4fc3f7, #29b6f6);
+            background: linear-gradient(145deg, #689f38, #558b2f);
+            box-shadow: 6px 6px 12px rgba(124, 179, 66, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        /* Status badges */
+        .stStatus {
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-weight: 600;
+        }
+        
+        /* Toast notifications */
+        .stToast {
+            background: linear-gradient(145deg, #c8e6c9, #a5d6a7);
+            border-left: 5px solid var(--primary-green);
+            border-radius: 10px;
+            box-shadow: 4px 4px 10px rgba(76, 175, 80, 0.2);
+        }
+        
+        /* Spinner */
+        .stSpinner > div {
+            border-top-color: var(--primary-green) !important;
+            border-right-color: var(--secondary-green) !important;
+            border-bottom-color: var(--leaf-green) !important;
+        }
+        
+        /* Form containers */
+        [data-testid="stForm"] {
+            background: linear-gradient(145deg, #ffffff, #f1f8f4);
+            border: 2px solid var(--light-green);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 3px 3px 8px rgba(76, 175, 80, 0.1);
+        }
+        
+        /* Columns */
+        [data-testid="column"] {
+            padding: 5px;
+        }
+        
+        /* Divider */
+        hr {
+            border-color: rgba(76, 175, 80, 0.2);
+            margin: 20px 0;
+        }
+        
+        /* Select box dropdown */
+        [data-baseweb="select"] {
+            background: rgba(200, 230, 201, 0.2);
+        }
+        
+        /* Checkbox */
+        [data-testid="stCheckbox"] {
+            color: var(--dark-green);
+        }
+        
+        input[type="checkbox"]:checked {
+            background-color: var(--primary-green) !important;
+            border-color: var(--primary-green) !important;
+        }
+        
+        /* Radio buttons */
+        [data-baseweb="radio"] label {
+            color: var(--dark-green);
+        }
+        
+        input[type="radio"]:checked::before {
+            background-color: var(--primary-green) !important;
+        }
+        
+        /* Number input */
+        input[type="number"] {
+            background-color: rgba(200, 230, 201, 0.3);
+            border: 2px solid var(--light-green);
+            border-radius: 8px;
+            color: var(--dark-green);
+        }
+        
+        /* Text on sidebar elements */
+        section[data-testid="stSidebar"] .stSelectbox label,
+        section[data-testid="stSidebar"] .stTextInput label,
+        section[data-testid="stSidebar"] .stCheckbox label {
+            color: var(--dark-green) !important;
+            font-weight: 600;
+        }
+        
+        /* Links */
+        a {
+            color: var(--forest-green) !important;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            color: var(--primary-green) !important;
+            text-decoration: underline;
+        }
+        
+        /* Code blocks */
+        code {
+            background-color: rgba(200, 230, 201, 0.3);
+            color: var(--dark-green);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--light-green);
+        }
+        
+        pre {
+            background: linear-gradient(145deg, #f1f8f4, #e8f5e9);
+            border: 2px solid var(--light-green);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        /* Markdown text */
+        .stMarkdown {
+            color: var(--dark-green);
+        }
+        
+        /* Widget labels */
+        label {
+            color: var(--dark-green) !important;
+            font-weight: 600;
+        }
+        
+        /* Caption text */
+        .stCaption {
+            color: var(--earth-brown) !important;
         }
         </style>
     """, unsafe_allow_html=True)
