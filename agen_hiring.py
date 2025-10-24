@@ -1288,36 +1288,66 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
     
     st.markdown("---")
     
-    # Custom CSS untuk compact expanders - NO GAP AT ALL!
+    # FINAL SOLUTION - Scope CSS to this tab only + HTML wrapper
     st.markdown("""
         <style>
-        /* ZERO gap between expanders - using negative margin to overlap borders */
-        div[data-testid="stExpander"] {
-            margin-top: 0px !important;
-            margin-bottom: -2px !important;
-            padding-top: 0px !important;
-            padding-bottom: 0px !important;
+        /* NUCLEAR OPTION - Remove ALL spacing universally in this context */
+        
+        /* Compact results container */
+        .compact-results {
+            display: flex;
+            flex-direction: column;
+            gap: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
-        /* Last expander should not have negative margin */
-        div[data-testid="stExpander"]:last-of-type {
-            margin-bottom: 0px !important;
+        /* CRITICAL: Set height of spacing elements to 0 */
+        [data-testid="stVerticalBlock"] > [data-testid="element-container"] {
+            min-height: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
-        /* Remove ALL spacing from element containers */
-        div[data-testid="element-container"]:has(> div[data-testid="stExpander"]) {
-            padding-top: 0px !important;
-            padding-bottom: 0px !important;
-            margin-top: 0px !important;
-            margin-bottom: 0px !important;
+        /* But expander containers should have auto height */
+        [data-testid="element-container"]:has([data-testid="stExpander"]) {
+            height: auto !important;
+            min-height: auto !important;
         }
         
-        /* Remove spacing from stVerticalBlock */
-        div[data-testid="stVerticalBlock"] > div[data-testid="element-container"] {
-            margin-bottom: 0px !important;
+        /* Target all elements that could have spacing */
+        [data-testid="stVerticalBlock"] * {
+            margin: 0 !important;
+            padding: 0 !important;
+            gap: 0 !important;
+            row-gap: 0 !important;
+            column-gap: 0 !important;
+        }
+        
+        /* Specifically target expanders */
+        [data-testid="stExpander"] {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Restore padding inside expander content only */
+        [data-testid="stExpander"] [data-testid="stMarkdownContainer"],
+        [data-testid="stExpander"] [data-testid="stHorizontalBlock"],
+        [data-testid="stExpander"] [data-testid="stVerticalBlock"] > div > div {
+            padding: 15px !important;
+            height: auto !important;
+        }
+        
+        [data-testid="stExpander"] .streamlit-expanderHeader {
+            padding: 12px 15px !important;
+            height: auto !important;
         }
         </style>
     """, unsafe_allow_html=True)
+    
+    # HTML wrapper to force compact layout
+    st.markdown('<div class="compact-results" style="display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0;">', unsafe_allow_html=True)
     
     # Display each result
     for idx, result in enumerate(sorted(results, key=lambda x: x.get('match_percentage', 0), reverse=True)):
@@ -1370,6 +1400,9 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
                 
                 if result.get('missing_skills'):
                     st.warning(f"**❌ Missing Skills:** {', '.join(result['missing_skills'])}")
+    
+    # Close HTML wrapper
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --- 13. MAIN APPLICATION ---
