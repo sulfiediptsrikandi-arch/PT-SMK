@@ -143,6 +143,7 @@ TEXTS = {
     # Excel Download - TEMA NATURE
     'upload_excel_label': {'id': "Unggah File Excel (.xlsx, .xls)", 'en': "Upload Excel File (.xlsx, .xls)"},
     'excel_format_info': {'id': "📋 Excel harus memiliki kolom: 'Link CV' atau 'CV Link' atau 'URL', dan 'Nama' atau 'Name'", 'en': "📋 Excel must have columns: 'Link CV' or 'CV Link' or 'URL', and 'Nama' or 'Name'"},
+    'google_drive_guide': {'id': "🔒 PENTING untuk Link Google Drive", 'en': "🔒 IMPORTANT for Google Drive Links"},
     'excel_uploaded': {'id': "File Excel terunggah", 'en': "Excel file uploaded"},
     'download_all_cv': {'id': "🌳 Download & Proses Semua CV", 'en': "🌳 Download & Process All CVs"},
     'downloading_cv': {'id': "Mengunduh CV", 'en': "Downloading CV"},
@@ -1942,19 +1943,40 @@ def main():
         
         st.info(get_text('excel_format_info'))
         
-        # Warning khusus untuk Google Drive
-        st.warning("""
-        🔒 **PENTING untuk Link Google Drive:**
+        # Panduan Link CV sebagai Expander
+        lang = st.session_state.get('language', 'id')
         
-        Jika menggunakan Google Form/Drive, pastikan file **PUBLIC**:
-        1. Buka Google Drive
-        2. Klik kanan folder/file → **Share / Bagikan**
-        3. Ubah ke: **"Anyone with the link"** / **"Siapa saja yang memiliki link"**
-        4. Permission: **"Viewer"** / **"Dapat melihat"**
-        5. Klik **Done / Selesai**
+        if lang == 'id':
+            guide_content = """
+            Jika menggunakan Google Form/Drive, pastikan file **PUBLIC**:
+            
+            1. **Buka Google Drive**
+            2. **Klik kanan folder/file** → **Share / Bagikan**
+            3. **Ubah ke:** *"Anyone with the link"* / *"Siapa saja yang memiliki link"*
+            4. **Permission:** *"Viewer"* / *"Dapat melihat"*
+            5. **Klik Done / Selesai**
+            
+            ---
+            
+            ℹ️ **Link Google Drive akan otomatis dikonversi ke format direct download.**
+            """
+        else:
+            guide_content = """
+            If using Google Form/Drive, make sure the file is **PUBLIC**:
+            
+            1. **Open Google Drive**
+            2. **Right-click folder/file** → **Share**
+            3. **Change to:** *"Anyone with the link"*
+            4. **Permission:** *"Viewer"*
+            5. **Click Done**
+            
+            ---
+            
+            ℹ️ **Google Drive links will be automatically converted to direct download format.**
+            """
         
-        ℹ️ Link Google Drive akan otomatis dikonversi ke format direct download.
-        """)
+        with st.expander(get_text('google_drive_guide'), expanded=False):
+            st.markdown(guide_content)
         
         with st.expander("📋 Contoh Format Excel / Excel Format Example", expanded=False):
             sample_data = {
