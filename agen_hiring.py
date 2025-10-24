@@ -98,6 +98,7 @@ TEXTS = {
     'confirm_clear_data': {'id': "Apakah Anda yakin ingin menghapus SEMUA data termasuk posisi, hasil analisa, dan history chat?", 'en': "Are you sure you want to delete ALL data including roles, analysis results, and chat history?"},
     'all_data_cleared': {'id': "✅ Semua data berhasil dihapus", 'en': "✅ All data cleared successfully"},
     'data_management': {'id': "Manajemen Data", 'en': "Data Management"},
+    'tab_data_management': {'id': "💚 Manajemen Data", 'en': "💚 Data Management"},
     'export_all_data': {'id': "🌳 Export Semua Data", 'en': "🌳 Export All Data"},
     'import_all_data': {'id': "🌲 Import Semua Data", 'en': "🌲 Import All Data"},
     'backup_success': {'id': "✅ Backup berhasil dibuat", 'en': "✅ Backup created successfully"},
@@ -1030,50 +1031,8 @@ def display_role_management():
     
     roles = load_roles()
     
-    # Data Management Section
-    with st.expander(f"💚 {get_text('data_management')}", expanded=False):
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            # Export all data
-            if st.button(get_text('export_all_data'), use_container_width=True):
-                all_data = export_all_data()
-                st.download_button(
-                    label="📥 Download Backup",
-                    data=json.dumps(all_data, indent=2, ensure_ascii=False),
-                    file_name=f"recruitment_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-                    mime="application/json",
-                    use_container_width=True
-                )
-                st.success(get_text('backup_success'))
-        
-        with col2:
-            # Import all data
-            uploaded_backup = st.file_uploader(
-                get_text('import_all_data'),
-                type=['json'],
-                key='backup_uploader'
-            )
-            if uploaded_backup:
-                try:
-                    backup_data = json.load(uploaded_backup)
-                    if import_all_data(backup_data):
-                        st.success(get_text('restore_success'))
-                        st.rerun()
-                    else:
-                        st.error("Error importing data")
-                except Exception as e:
-                    st.error(f"Error: {str(e)}")
-        
-        with col3:
-            # Clear all data
-            if st.button(get_text('clear_all_data'), type="secondary", use_container_width=True):
-                if st.checkbox(get_text('confirm_clear_data')):
-                    if clear_all_persistent_data():
-                        st.success(get_text('all_data_cleared'))
-                        st.rerun()
-    
-    st.markdown("---")
+    # Data Management Section - MOVED TO SEPARATE TAB
+    # (Section removed - now in tab_data_management)
     
     # Add/Edit Role Section
     tab_add, tab_edit = st.tabs([get_text('add_role_header'), get_text('edit_role_header')])
@@ -1171,6 +1130,86 @@ def display_role_management():
     #                 st.rerun()
     #             except:
     #                 st.error(get_text('import_roles_error'))
+
+
+# --- 11.5 DATA MANAGEMENT DISPLAY ---
+def display_data_management():
+    """Display data management interface for export/import/clear operations."""
+    st.header(get_text('tab_data_management'))
+    
+    st.info("💾 " + get_text('storage_info'))
+    
+    # Show current data stats
+    roles = load_roles()
+    memory = load_analysis_memory()
+    chat_history = load_chat_history()
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("📋 Posisi / Roles", len(roles))
+    with col2:
+        st.metric("🧠 Analisa Tersimpan", len(memory))
+    with col3:
+        st.metric("💬 Chat History", len(chat_history))
+    
+    st.markdown("---")
+    
+    # Data Management Operations
+    st.subheader("🌿 Operasi Data")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("### 🌳 Export Semua Data")
+        st.write("Backup semua data aplikasi dalam satu file JSON")
+        if st.button(get_text('export_all_data'), use_container_width=True):
+            all_data = export_all_data()
+            st.download_button(
+                label="📥 Download Backup",
+                data=json.dumps(all_data, indent=2, ensure_ascii=False),
+                file_name=f"recruitment_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                mime="application/json",
+                use_container_width=True,
+                key="download_backup"
+            )
+            st.success(get_text('backup_success'))
+    
+    with col2:
+        st.markdown("### 🌲 Import Semua Data")
+        st.write("Pulihkan data dari file backup JSON")
+        uploaded_backup = st.file_uploader(
+            get_text('import_all_data'),
+            type=['json'],
+            key='backup_uploader',
+            label_visibility="collapsed"
+        )
+        if uploaded_backup:
+            try:
+                backup_data = json.load(uploaded_backup)
+                if import_all_data(backup_data):
+                    st.success(get_text('restore_success'))
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.error("Error importing data")
+            except Exception as e:
+                st.error(f"Error: {str(e)}")
+    
+    with col3:
+        st.markdown("### 🍂 Hapus Semua Data")
+        st.write("⚠️ Hapus SEMUA data aplikasi (tidak dapat dibatalkan!)")
+        if st.button(get_text('clear_all_data'), type="secondary", use_container_width=True):
+            with st.form("confirm_delete_form"):
+                st.warning(get_text('confirm_clear_data'))
+                confirm = st.checkbox("Ya, saya yakin ingin menghapus semua data")
+                if st.form_submit_button("🗑️ Konfirmasi Hapus", type="primary"):
+                    if confirm:
+                        if clear_all_persistent_data():
+                            st.success(get_text('all_data_cleared'))
+                            time.sleep(1)
+                            st.rerun()
+                    else:
+                        st.error("Silakan centang checkbox untuk konfirmasi")
 
 
 # --- 12. RESULTS TABLE DISPLAY ---
@@ -1844,12 +1883,13 @@ def main():
         st.stop()
     
     # Tabs dengan emoji nature
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         get_text('tab_upload'),
         get_text('tab_download_excel'),
         get_text('tab_results'),
         get_text('tab_chatbot'),
-        get_text('tab_manage_roles')
+        get_text('tab_manage_roles'),
+        get_text('tab_data_management')
     ])
     
     # TAB 1: Upload & Process
@@ -2094,6 +2134,10 @@ def main():
     with tab5:
         display_role_management()
     
+    # TAB 6: Data Management
+    with tab6:
+        display_data_management()
+
 
 
 if __name__ == "__main__":
