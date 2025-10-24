@@ -1288,67 +1288,6 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
     
     st.markdown("---")
     
-    # FINAL SOLUTION - Scope CSS to this tab only + HTML wrapper
-    st.markdown("""
-        <style>
-        /* NUCLEAR OPTION - Remove ALL spacing universally in this context */
-        
-        /* Compact results container */
-        .compact-results {
-            display: flex;
-            flex-direction: column;
-            gap: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* CRITICAL: Set height of spacing elements to 0 */
-        [data-testid="stVerticalBlock"] > [data-testid="element-container"] {
-            min-height: 0 !important;
-            height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* But expander containers should have auto height */
-        [data-testid="element-container"]:has([data-testid="stExpander"]) {
-            height: auto !important;
-            min-height: auto !important;
-        }
-        
-        /* Target all elements that could have spacing */
-        [data-testid="stVerticalBlock"] * {
-            margin: 0 !important;
-            padding: 0 !important;
-            gap: 0 !important;
-            row-gap: 0 !important;
-            column-gap: 0 !important;
-        }
-        
-        /* Specifically target expanders */
-        [data-testid="stExpander"] {
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* Restore padding inside expander content only */
-        [data-testid="stExpander"] [data-testid="stMarkdownContainer"],
-        [data-testid="stExpander"] [data-testid="stHorizontalBlock"],
-        [data-testid="stExpander"] [data-testid="stVerticalBlock"] > div > div {
-            padding: 15px !important;
-            height: auto !important;
-        }
-        
-        [data-testid="stExpander"] .streamlit-expanderHeader {
-            padding: 12px 15px !important;
-            height: auto !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    # HTML wrapper to force compact layout
-    st.markdown('<div class="compact-results" style="display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0;">', unsafe_allow_html=True)
-    
     # Display each result
     for idx, result in enumerate(sorted(results, key=lambda x: x.get('match_percentage', 0), reverse=True)):
         status = result['status']
@@ -1400,9 +1339,6 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
                 
                 if result.get('missing_skills'):
                     st.warning(f"**❌ Missing Skills:** {', '.join(result['missing_skills'])}")
-    
-    # Close HTML wrapper
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --- 13. MAIN APPLICATION ---
@@ -1690,35 +1626,6 @@ def main():
             border: 2px solid var(--light-green);
             box-shadow: 4px 4px 10px rgba(76, 175, 80, 0.1);
             margin: 10px 0;
-        }
-        
-        /* Result expanders - ZERO SPACING! */
-        .result-expanders > div[data-testid="stVerticalBlock"] > div[data-testid="stExpander"] {
-            margin: 0px !important;
-            border-radius: 8px;
-        }
-        
-        /* First result expander */
-        .result-expanders > div[data-testid="stVerticalBlock"] > div[data-testid="stExpander"]:first-child {
-            border-top-left-radius: 12px !important;
-            border-top-right-radius: 12px !important;
-        }
-        
-        /* Last result expander */
-        .result-expanders > div[data-testid="stVerticalBlock"] > div[data-testid="stExpander"]:last-child {
-            border-bottom-left-radius: 12px !important;
-            border-bottom-right-radius: 12px !important;
-        }
-        
-        /* Override all margins for result expanders */
-        .result-expanders div[data-testid="stExpander"] {
-            margin: 0px !important;
-        }
-        
-        /* Expander header in results */
-        .result-expanders .streamlit-expanderHeader {
-            padding: 12px 15px;
-            font-size: 16px;
         }
         
         /* Download button - Nature themed */
@@ -2033,6 +1940,8 @@ def main():
     # TAB 2: Download from Excel
     with tab2:
         st.header(get_text('tab_download_excel'))
+        
+        st.info(get_text('excel_format_info'))
         
         # Panduan Link CV sebagai Expander
         lang = st.session_state.get('language', 'id')
