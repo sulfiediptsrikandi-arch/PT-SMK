@@ -76,19 +76,83 @@ def apply_nature_theme():
         border-right: 3px solid var(--nature-accent);
     }
     
-    [data-testid="stSidebar"] * {
+    /* Default text di sidebar - PUTIH karena bg gelap */
+    [data-testid="stSidebar"] {
         color: #ffffff !important;
     }
     
+    /* Sidebar headings - PUTIH TERANG untuk visibility pada bg gelap */
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] h4,
     [data-testid="stSidebar"] .stMarkdown h1,
     [data-testid="stSidebar"] .stMarkdown h2,
-    [data-testid="stSidebar"] .stMarkdown h3 {
-        color: #a8d08d !important;
+    [data-testid="stSidebar"] .stMarkdown h3,
+    [data-testid="stSidebar"] .stMarkdown h4 {
+        color: #ffffff !important;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        font-weight: 700 !important;
+    }
+    
+    /* Paragraf di sidebar - putih */
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span:not(input span):not(select span),
+    [data-testid="stSidebar"] div:not([data-baseweb]) {
+        color: #ffffff !important;
+    }
+    
+    /* Label di sidebar - PUTIH dan BOLD */
+    [data-testid="stSidebar"] label {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+    
+    /* EXCEPTION: Elemen dengan background terang di sidebar */
+    /* Input fields - text GELAP karena bg putih */
+    [data-testid="stSidebar"] input[type="text"],
+    [data-testid="stSidebar"] input[type="password"],
+    [data-testid="stSidebar"] input[type="number"],
+    [data-testid="stSidebar"] textarea {
+        color: #1a3010 !important;
+        background-color: #ffffff !important;
+    }
+    
+    /* Select dropdown di sidebar - text gelap */
+    [data-testid="stSidebar"] [data-baseweb="select"] {
+        background-color: #ffffff !important;
+    }
+    
+    [data-testid="stSidebar"] [data-baseweb="select"] span,
+    [data-testid="stSidebar"] [data-baseweb="select"] div {
+        color: #1a3010 !important;
+    }
+    
+    /* Alert boxes di sidebar - sesuaikan warna text */
+    [data-testid="stSidebar"] .stAlert p,
+    [data-testid="stSidebar"] .stAlert span,
+    [data-testid="stSidebar"] .stAlert div {
+        color: inherit !important;
+    }
+    
+    /* Expander di sidebar */
+    [data-testid="stSidebar"] [data-testid="stExpander"] summary {
+        color: #ffffff !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stExpander"] p,
+    [data-testid="stSidebar"] [data-testid="stExpander"] span {
+        color: #ffffff !important;
+    }
+    
+    /* Button di sidebar - keep white text */
+    [data-testid="stSidebar"] button {
+        color: #ffffff !important;
     }
     
     /* ===== HEADER & JUDUL ===== */
-    h1, h2, h3 {
+    /* Semua heading HARUS gelap untuk kontras tinggi pada bg terang */
+    h1, h2, h3, h4, h5, h6 {
         color: var(--nature-primary) !important;
         font-weight: 700;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
@@ -97,6 +161,22 @@ def apply_nature_theme():
     h1 {
         border-bottom: 3px solid var(--nature-accent);
         padding-bottom: 10px;
+    }
+    
+    /* Pastikan heading di main content area juga gelap */
+    .main h1, .main h2, .main h3 {
+        color: var(--nature-primary) !important;
+    }
+    
+    /* Subheadings dan captions juga gelap */
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
+    .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
+        color: var(--nature-primary) !important;
+    }
+    
+    /* Caption dan helper text */
+    .stCaption, [data-testid="stCaptionContainer"] {
+        color: var(--nature-secondary) !important;
     }
     
     /* ===== TABS ===== */
@@ -388,17 +468,31 @@ def apply_nature_theme():
     }
     
     /* ===== KONTRAS TEKS - READABILITY ===== */
-    /* Semua teks utama menggunakan warna gelap untuk kontras tinggi */
-    p, span, div, li {
-        color: #1a3010;
+    /* KRITIS: Semua teks pada background terang HARUS menggunakan warna GELAP */
+    
+    /* Default text - dark untuk kontras maksimal */
+    p, span, div, li, td, th {
+        color: #1a3010 !important;
     }
     
-    /* Heading dengan kontras tinggi */
-    h1, h2, h3, h4, h5, h6 {
+    /* Heading dengan kontras tinggi - SELALU GELAP */
+    h1, h2, h3, h4, h5, h6,
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
+    .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
         color: var(--nature-primary) !important;
     }
     
-    /* Link dengan warna yang terlihat jelas */
+    /* Main content area text - GELAP */
+    .main p, .main span, .main div:not([data-testid="stSidebar"] div) {
+        color: #1a3010 !important;
+    }
+    
+    /* Markdown content - GELAP */
+    .stMarkdown p, .stMarkdown span, .stMarkdown li {
+        color: #1a3010 !important;
+    }
+    
+    /* Link dengan warna yang terlihat jelas tapi tetap kontras tinggi */
     a {
         color: var(--nature-secondary) !important;
         font-weight: 600;
@@ -407,6 +501,38 @@ def apply_nature_theme():
     a:hover {
         color: var(--nature-accent) !important;
         text-decoration: underline;
+    }
+    
+    /* Expander content - text GELAP */
+    [data-testid="stExpander"] p,
+    [data-testid="stExpander"] span,
+    [data-testid="stExpander"] div {
+        color: #1a3010 !important;
+    }
+    
+    /* Info boxes - text GELAP pada bg terang */
+    .stAlert p, .stAlert span, .stAlert div {
+        color: inherit !important;
+    }
+    
+    /* Caption dan helper text - medium dark untuk hierarchy */
+    .stCaption, [data-testid="stCaptionContainer"],
+    [data-testid="stCaptionContainer"] p {
+        color: var(--nature-secondary) !important;
+    }
+    
+    /* Label untuk form - GELAP dan BOLD */
+    label, .stTextInput > label, .stTextArea > label,
+    .stSelectbox > label, .stFileUploader > label,
+    .stCheckbox > label, .stRadio > label {
+        color: var(--nature-primary) !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Select dropdown text - GELAP */
+    [data-baseweb="select"] span,
+    [data-baseweb="select"] div {
+        color: #1a3010 !important;
     }
     
     /* ===== CUSTOM NATURE HEADER ===== */
@@ -1332,7 +1458,7 @@ def main():
     
     # Sidebar configuration
     with st.sidebar:
-        st.markdown("## " + get_text('config_header'))
+        st.markdown(f"### {get_text('config_header')}")
         
         # Language selection
         language = st.selectbox(
@@ -1345,7 +1471,7 @@ def main():
         st.markdown("---")
         
         # OpenAI settings
-        st.markdown("### " + get_text('openai_settings'))
+        st.markdown(f"### {get_text('openai_settings')}")
         api_key = st.text_input(
             get_text('api_key_label'),
             type="password",
@@ -1359,7 +1485,7 @@ def main():
         
         # OCR settings
         if OCR_AVAILABLE:
-            st.markdown("### " + get_text('ocr_settings'))
+            st.markdown(f"### {get_text('ocr_settings')}")
             enable_ocr = st.checkbox(
                 get_text('enable_ocr'),
                 value=st.session_state.enable_ocr,
@@ -1370,7 +1496,7 @@ def main():
             st.markdown("---")
         
         # Data management
-        st.markdown("### " + get_text('data_management'))
+        st.markdown(f"### {get_text('data_management')}")
         
         if st.button(get_text('clear_all_data'), type='secondary'):
             if st.checkbox(get_text('confirm_clear_data')):
