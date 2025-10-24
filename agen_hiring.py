@@ -1288,7 +1288,9 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
     
     st.markdown("---")
     
-    # Display each result
+    # Display each result - Wrapped in container for compact spacing
+    st.markdown('<div class="result-expanders">', unsafe_allow_html=True)
+    
     for idx, result in enumerate(sorted(results, key=lambda x: x.get('match_percentage', 0), reverse=True)):
         status = result['status']
         status_emoji = {
@@ -1339,6 +1341,9 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
                 
                 if result.get('missing_skills'):
                     st.warning(f"**❌ Missing Skills:** {', '.join(result['missing_skills'])}")
+    
+    # Close result-expanders container
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --- 13. MAIN APPLICATION ---
@@ -1626,6 +1631,28 @@ def main():
             border: 2px solid var(--light-green);
             box-shadow: 4px 4px 10px rgba(76, 175, 80, 0.1);
             margin: 10px 0;
+        }
+        
+        /* Result expanders - Compact spacing (no gap) */
+        .result-expanders div[data-testid="stExpander"] {
+            margin: 0 0 2px 0 !important;
+            border-radius: 8px;
+        }
+        
+        .result-expanders div[data-testid="stExpander"]:first-child {
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+        
+        .result-expanders div[data-testid="stExpander"]:last-child {
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            margin-bottom: 0 !important;
+        }
+        
+        .result-expanders .streamlit-expanderHeader {
+            padding: 12px 15px;
+            font-size: 16px;
         }
         
         /* Download button - Nature themed */
