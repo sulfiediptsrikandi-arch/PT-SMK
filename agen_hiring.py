@@ -1288,9 +1288,26 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
     
     st.markdown("---")
     
-    # Display each result - Wrapped in container for compact spacing
-    st.markdown('<div class="result-expanders">', unsafe_allow_html=True)
+    # Custom CSS untuk compact expanders - Simple but effective approach
+    st.markdown("""
+        <style>
+        /* Apply compact spacing to ALL expanders and their containers */
+        div[data-testid="stExpander"] {
+            margin-top: 0px !important;
+            margin-bottom: 3px !important;
+        }
+        
+        /* Remove padding from element containers that wrap expanders */
+        div[data-testid="element-container"]:has(> div[data-testid="stExpander"]) {
+            padding-top: 0px !important;
+            padding-bottom: 0px !important;
+            margin-top: 0px !important;
+            margin-bottom: 0px !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
     
+    # Display each result
     for idx, result in enumerate(sorted(results, key=lambda x: x.get('match_percentage', 0), reverse=True)):
         status = result['status']
         status_emoji = {
@@ -1341,9 +1358,6 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
                 
                 if result.get('missing_skills'):
                     st.warning(f"**❌ Missing Skills:** {', '.join(result['missing_skills'])}")
-    
-    # Close result-expanders container
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # --- 13. MAIN APPLICATION ---
@@ -1633,23 +1647,35 @@ def main():
             margin: 10px 0;
         }
         
-        /* Result expanders - Compact spacing (no gap) */
-        .result-expanders div[data-testid="stExpander"] {
-            margin: 0 0 2px 0 !important;
+        /* Result expanders - Compact spacing (NO GAP!) */
+        .result-expanders > div[data-testid="stVerticalBlock"] > div[data-testid="stExpander"] {
+            margin-top: 0 !important;
+            margin-bottom: 2px !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
             border-radius: 8px;
         }
         
-        .result-expanders div[data-testid="stExpander"]:first-child {
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
+        /* First result expander */
+        .result-expanders > div[data-testid="stVerticalBlock"] > div[data-testid="stExpander"]:first-child {
+            border-top-left-radius: 12px !important;
+            border-top-right-radius: 12px !important;
+            margin-top: 0 !important;
         }
         
-        .result-expanders div[data-testid="stExpander"]:last-child {
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
+        /* Last result expander */
+        .result-expanders > div[data-testid="stVerticalBlock"] > div[data-testid="stExpander"]:last-child {
+            border-bottom-left-radius: 12px !important;
+            border-bottom-right-radius: 12px !important;
             margin-bottom: 0 !important;
         }
         
+        /* Override all margins for result expanders */
+        .result-expanders div[data-testid="stExpander"] {
+            margin: 0 0 2px 0 !important;
+        }
+        
+        /* Expander header in results */
         .result-expanders .streamlit-expanderHeader {
             padding: 12px 15px;
             font-size: 16px;
