@@ -1941,8 +1941,6 @@ def main():
     with tab2:
         st.header(get_text('tab_download_excel'))
         
-        st.info(get_text('excel_format_info'))
-        
         # Panduan Link CV sebagai Expander
         lang = st.session_state.get('language', 'id')
         
