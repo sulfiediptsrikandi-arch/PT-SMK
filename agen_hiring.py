@@ -1136,41 +1136,41 @@ def display_role_management():
         else:
             st.info(get_text('no_roles_available'))
     
-    # Current Roles Display
-    if roles:
-        st.markdown("---")
-        st.subheader(get_text('current_roles_header'))
-        
-        for role_id, requirements in roles.items():
-            with st.expander(f"🌱 {role_id.replace('_', ' ').title()}", expanded=False):
-                st.markdown(requirements)
-        
-        # Export/Import Roles
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button(get_text('export_roles_button'), use_container_width=True):
-                st.download_button(
-                    label="📥 Download JSON",
-                    data=json.dumps(roles, indent=2, ensure_ascii=False),
-                    file_name="roles.json",
-                    mime="application/json",
-                    use_container_width=True
-                )
-        
-        with col2:
-            uploaded_roles = st.file_uploader(
-                get_text('import_roles_button'),
-                type=['json'],
-                key='roles_uploader'
-            )
-            if uploaded_roles:
-                try:
-                    imported_roles = json.load(uploaded_roles)
-                    save_roles(imported_roles)
-                    st.success(get_text('import_roles_success'))
-                    st.rerun()
-                except:
-                    st.error(get_text('import_roles_error'))
+    # Current Roles Display - DISABLED (User request)
+    # if roles:
+    #     st.markdown("---")
+    #     st.subheader(get_text('current_roles_header'))
+    #     
+    #     for role_id, requirements in roles.items():
+    #         with st.expander(f"🌱 {role_id.replace('_', ' ').title()}", expanded=False):
+    #             st.markdown(requirements)
+    #     
+    #     # Export/Import Roles
+    #     col1, col2 = st.columns(2)
+    #     with col1:
+    #         if st.button(get_text('export_roles_button'), use_container_width=True):
+    #             st.download_button(
+    #                 label="📥 Download JSON",
+    #                 data=json.dumps(roles, indent=2, ensure_ascii=False),
+    #                 file_name="roles.json",
+    #                 mime="application/json",
+    #                 use_container_width=True
+    #             )
+    #     
+    #     with col2:
+    #         uploaded_roles = st.file_uploader(
+    #             get_text('import_roles_button'),
+    #             type=['json'],
+    #             key='roles_uploader'
+    #         )
+    #         if uploaded_roles:
+    #             try:
+    #                 imported_roles = json.load(uploaded_roles)
+    #                 save_roles(imported_roles)
+    #                 st.success(get_text('import_roles_success'))
+    #                 st.rerun()
+    #             except:
+    #                 st.error(get_text('import_roles_error'))
 
 
 # --- 12. RESULTS TABLE DISPLAY ---
