@@ -1584,7 +1584,7 @@ def main():
             background: linear-gradient(145deg, #f1f8f4, #e8f5e9);
             border-radius: 10px;
             padding: 15px;
-            margin: 10px 0;
+            margin: 5px 0;
             box-shadow: 2px 2px 5px rgba(76, 175, 80, 0.1);
             border-left: 4px solid var(--primary-green);
         }
@@ -1625,7 +1625,7 @@ def main():
             border-radius: 12px;
             border: 2px solid var(--light-green);
             box-shadow: 4px 4px 10px rgba(76, 175, 80, 0.1);
-            margin: 10px 0;
+            margin: 2px 0;
         }
         
         /* Download button - Nature themed */
