@@ -1288,20 +1288,32 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
     
     st.markdown("---")
     
-    # Custom CSS untuk compact expanders - Simple but effective approach
+    # Custom CSS untuk compact expanders - NO GAP AT ALL!
     st.markdown("""
         <style>
-        /* Apply compact spacing to ALL expanders and their containers */
+        /* ZERO gap between expanders - using negative margin to overlap borders */
         div[data-testid="stExpander"] {
             margin-top: 0px !important;
-            margin-bottom: 3px !important;
+            margin-bottom: -2px !important;
+            padding-top: 0px !important;
+            padding-bottom: 0px !important;
         }
         
-        /* Remove padding from element containers that wrap expanders */
+        /* Last expander should not have negative margin */
+        div[data-testid="stExpander"]:last-of-type {
+            margin-bottom: 0px !important;
+        }
+        
+        /* Remove ALL spacing from element containers */
         div[data-testid="element-container"]:has(> div[data-testid="stExpander"]) {
             padding-top: 0px !important;
             padding-bottom: 0px !important;
             margin-top: 0px !important;
+            margin-bottom: 0px !important;
+        }
+        
+        /* Remove spacing from stVerticalBlock */
+        div[data-testid="stVerticalBlock"] > div[data-testid="element-container"] {
             margin-bottom: 0px !important;
         }
         </style>
@@ -1647,12 +1659,9 @@ def main():
             margin: 10px 0;
         }
         
-        /* Result expanders - Compact spacing (NO GAP!) */
+        /* Result expanders - ZERO SPACING! */
         .result-expanders > div[data-testid="stVerticalBlock"] > div[data-testid="stExpander"] {
-            margin-top: 0 !important;
-            margin-bottom: 2px !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
+            margin: 0px !important;
             border-radius: 8px;
         }
         
@@ -1660,19 +1669,17 @@ def main():
         .result-expanders > div[data-testid="stVerticalBlock"] > div[data-testid="stExpander"]:first-child {
             border-top-left-radius: 12px !important;
             border-top-right-radius: 12px !important;
-            margin-top: 0 !important;
         }
         
         /* Last result expander */
         .result-expanders > div[data-testid="stVerticalBlock"] > div[data-testid="stExpander"]:last-child {
             border-bottom-left-radius: 12px !important;
             border-bottom-right-radius: 12px !important;
-            margin-bottom: 0 !important;
         }
         
         /* Override all margins for result expanders */
         .result-expanders div[data-testid="stExpander"] {
-            margin: 0 0 2px 0 !important;
+            margin: 0px !important;
         }
         
         /* Expander header in results */
