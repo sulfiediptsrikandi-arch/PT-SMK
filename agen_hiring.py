@@ -1318,7 +1318,7 @@ def display_data_management():
         st.markdown("### 🍂 Hapus Semua Data")
         st.write("⚠️ Hapus SEMUA data aplikasi")
         
-        # IMPROVEMENT: Use checkbox for confirmation first
+        # Simple confirmation with Yes/No buttons only
         if 'confirm_delete_shown' not in st.session_state:
             st.session_state.confirm_delete_shown = False
         
@@ -1327,22 +1327,20 @@ def display_data_management():
         
         if st.session_state.confirm_delete_shown:
             st.warning(get_text('confirm_clear_data'))
-            confirm_checkbox = st.checkbox("✅ Ya, saya yakin ingin menghapus semua data / Yes, I'm sure I want to delete all data", key="delete_confirm_checkbox")
             
             col_a, col_b = st.columns(2)
             with col_a:
-                if st.button("🗑️ Konfirmasi Hapus / Confirm Delete", type="primary", use_container_width=True, disabled=not confirm_checkbox, key="final_delete_btn"):
-                    if confirm_checkbox:
-                        if clear_all_persistent_data():
-                            st.success(get_text('all_data_cleared'))
-                            st.session_state.confirm_delete_shown = False
-                            time.sleep(1)
-                            st.rerun()
-                        else:
-                            st.error("Error clearing data")
+                if st.button("✅ Ya / Yes", type="primary", use_container_width=True, key="confirm_yes_btn"):
+                    if clear_all_persistent_data():
+                        st.success(get_text('all_data_cleared'))
+                        st.session_state.confirm_delete_shown = False
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("Error clearing data")
             
             with col_b:
-                if st.button("❌ Batal / Cancel", use_container_width=True, key="cancel_delete_btn"):
+                if st.button("❌ Tidak / No", use_container_width=True, key="confirm_no_btn"):
                     st.session_state.confirm_delete_shown = False
                     st.rerun()
 
