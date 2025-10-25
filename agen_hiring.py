@@ -94,9 +94,9 @@ TEXTS = {
     'import_roles_error': {'id': "❌ Gagal import posisi. Pastikan format JSON benar.", 'en': "❌ Failed to import roles. Ensure JSON format is correct."},
     'storage_info': {'id': "💚 Data disimpan secara otomatis", 'en': "💚 Data saved automatically"},
     'data_loaded': {'id': "✅ Data berhasil dimuat dari penyimpanan", 'en': "✅ Data loaded from storage successfully"},
-    'clear_all_data': {'id': "🍂 Hapus Semua Data", 'en': "🍂 Clear All Data"},
-    'confirm_clear_data': {'id': "Apakah Anda yakin ingin menghapus SEMUA data termasuk posisi, hasil analisa, dan history chat?", 'en': "Are you sure you want to delete ALL data including roles, analysis results, and chat history?"},
-    'all_data_cleared': {'id': "✅ Semua data berhasil dihapus", 'en': "✅ All data cleared successfully"},
+    'clear_all_data': {'id': "🍂 Hapus History & Hasil Analisa", 'en': "🍂 Clear History & Analysis Results"},
+    'confirm_clear_data': {'id': "Apakah Anda yakin ingin menghapus history chat dan hasil analisa? (Data posisi akan tetap tersimpan)", 'en': "Are you sure you want to delete chat history and analysis results? (Position data will remain saved)"},
+    'all_data_cleared': {'id': "✅ History chat dan hasil analisa berhasil dihapus", 'en': "✅ Chat history and analysis results cleared successfully"},
     'data_management': {'id': "Manajemen Data", 'en': "Data Management"},
     'tab_data_management': {'id': "💚 Manajemen Data", 'en': "💚 Data Management"},
     'export_all_data': {'id': "🌳 Export Semua Data", 'en': "🌳 Export All Data"},
@@ -240,10 +240,12 @@ def save_results_to_disk():
         logger.error(f"Error saving results: {e}")
 
 def clear_all_persistent_data():
-    """Clear all persistent data files."""
+    """Clear analysis memory, chat history, and batch results. Keep roles data intact."""
     try:
         files_deleted = 0
-        for file in [ROLES_FILE, MEMORY_FILE, CHAT_HISTORY_FILE, RESULTS_FILE]:
+        # Only delete MEMORY_FILE, CHAT_HISTORY_FILE, and RESULTS_FILE
+        # ROLES_FILE is preserved so users don't have to re-add positions
+        for file in [MEMORY_FILE, CHAT_HISTORY_FILE, RESULTS_FILE]:
             if file.exists():
                 file.unlink()
                 files_deleted += 1
@@ -255,7 +257,7 @@ def clear_all_persistent_data():
             if key in st.session_state:
                 st.session_state[key] = []
         
-        logger.info(f"Successfully cleared {files_deleted} data files")
+        logger.info(f"Successfully cleared {files_deleted} data files (roles preserved)")
         return True
     except Exception as e:
         logger.error(f"Error clearing data: {e}")
@@ -369,6 +371,75 @@ def calculate_skills_match_percentage(resume_text: str, required_skills: List[st
     return percentage, matching_skills, missing_skills
 
 
+def extract_work_experience_duration(resume_text: str) -> int:
+    """
+    Extract and calculate total work experience duration from resume.
+    Looks for date patterns and calculates total years of experience.
+    """
+    resume_lower = resume_text.lower()
+    
+    # Pattern untuk mendeteksi rentang tanggal dalam berbagai format
+    # Format: "Jan 2020 - Dec 2022", "January 2020 - December 2022", "2020 - 2022", "2020-2022", dll
+    date_patterns = [
+        # Format: Month Year - Month Year (e.g., "Jan 2020 - Dec 2022")
+        r'(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s*\.?\s*(\d{4})\s*[-–—to]+\s*(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s*\.?\s*(\d{4})',
+        # Format: Year - Year (e.g., "2020 - 2022", "2020-2022")
+        r'(\d{4})\s*[-–—]+\s*(\d{4})',
+        # Format: Month Year - Present/Sekarang
+        r'(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s*\.?\s*(\d{4})\s*[-–—to]+\s*(?:present|sekarang|now|current|ongoing)',
+        # Format: Year - Present/Sekarang
+        r'(\d{4})\s*[-–—]+\s*(?:present|sekarang|now|current|ongoing)',
+    ]
+    
+    total_months = 0
+    found_ranges = []
+    current_year = datetime.now().year
+    
+    for pattern in date_patterns:
+        matches = re.finditer(pattern, resume_lower, re.IGNORECASE)
+        for match in matches:
+            try:
+                if 'present' in pattern or 'sekarang' in pattern:
+                    # Handle "Year - Present" format
+                    start_year = int(match.group(1))
+                    end_year = current_year
+                else:
+                    # Handle "Year - Year" format
+                    start_year = int(match.group(1))
+                    end_year = int(match.group(2))
+                
+                # Validasi tahun (harus masuk akal)
+                if 1970 <= start_year <= current_year and 1970 <= end_year <= current_year:
+                    if start_year <= end_year:
+                        duration_years = end_year - start_year
+                        # Konversi ke bulan (asumsi rata-rata 12 bulan per tahun)
+                        duration_months = duration_years * 12
+                        
+                        # Hindari duplikasi dengan cek overlap
+                        is_duplicate = False
+                        for existing_range in found_ranges:
+                            if abs(existing_range[0] - start_year) <= 1 and abs(existing_range[1] - end_year) <= 1:
+                                is_duplicate = True
+                                break
+                        
+                        if not is_duplicate:
+                            found_ranges.append((start_year, end_year))
+                            total_months += duration_months
+            except (ValueError, IndexError):
+                continue
+    
+    # Jika tidak menemukan pola tanggal, coba metode lama sebagai fallback
+    if total_months == 0:
+        years_match = re.findall(r'(\d+)\s*(?:tahun|year|years|yr)', resume_lower)
+        if years_match:
+            total_months = max([int(y) for y in years_match], default=0) * 12
+    
+    # Konversi total bulan ke tahun
+    total_years = total_months // 12
+    
+    return total_years
+
+
 def calculate_consistent_score(resume_text: str, requirements: str) -> Dict:
     """
     Calculate a deterministic baseline score based on actual skill requirements.
@@ -387,13 +458,12 @@ def calculate_consistent_score(resume_text: str, requirements: str) -> Dict:
     education_keywords = ['bachelor', 'master', 'phd', 'sarjana', 's1', 's2', 's3', 'degree', 'university', 'universitas', 'diploma']
     education_match = any(kw in resume_lower for kw in education_keywords)
     
-    # Check for experience keywords and try to extract years
-    experience_keywords = ['year', 'tahun', 'experience', 'pengalaman', 'worked', 'bekerja']
+    # Check for experience keywords and calculate years using improved method
+    experience_keywords = ['year', 'tahun', 'experience', 'pengalaman', 'worked', 'bekerja', 'work history', 'employment']
     has_experience = any(kw in resume_lower for kw in experience_keywords)
     
-    # Try to find years of experience
-    years_match = re.findall(r'(\d+)\s*(?:tahun|year|years)', resume_lower)
-    years_of_experience = max([int(y) for y in years_match], default=0) if years_match else 0
+    # Use improved experience calculation that analyzes date ranges
+    years_of_experience = extract_work_experience_duration(resume_text)
     
     # Check for certifications
     cert_keywords = ['certificate', 'certification', 'sertifikat', 'certified', 'licensed', 'lisence', 'sertifikat']
@@ -599,6 +669,28 @@ EVALUATION CRITERIA (Apply strictly based on ACTUAL skills from requirements):
 2. Education (20%): Does education meet requirements?
 3. Experience (20%): Years of relevant experience
 4. Certifications (10%): Relevant certifications
+
+CRITICAL: WORK EXPERIENCE CALCULATION RULES
+When calculating work experience, you MUST:
+1. Carefully identify ALL work experience entries in the resume
+2. For EACH work experience entry, extract:
+   - Job Position/Title
+   - Company Name
+   - Start Date (month and year)
+   - End Date (month and year, or "Present" if still working)
+3. Calculate the duration for each position in MONTHS, then convert to YEARS
+4. Sum up ALL relevant work experiences from ALL companies/positions
+5. Look for experience certificates, employment letters, or work history sections
+6. Pay special attention to dates - format may be: "Jan 2020 - Dec 2022", "2020-2022", "January 2020 - Present", etc.
+7. If candidate has worked in MULTIPLE companies, ADD UP all the durations
+8. Consider overlapping periods only once (if any)
+
+EXAMPLE OF CORRECT CALCULATION:
+- Position 1: Software Engineer at Company A (Jan 2020 - Dec 2021) = 2 years
+- Position 2: Developer at Company B (Jan 2022 - Present/Oct 2024) = 2.8 years
+- TOTAL EXPERIENCE: 2 + 2.8 = 4.8 years (round down to 4 years or up to 5 years)
+
+DO NOT underestimate experience - if you see multiple work experiences, calculate them ALL carefully!
 
 SCORING RULES (Be consistent and deterministic):
 - Score MUST be based on skill matching percentage from requirements
@@ -1315,8 +1407,8 @@ def display_data_management():
                 st.error(f"Error: {str(e)}")
     
     with col3:
-        st.markdown("### 🍂 Hapus Semua Data")
-        st.write("⚠️ Hapus SEMUA data aplikasi")
+        st.markdown("### 🍂 Hapus History & Analisa")
+        st.write("⚠️ Hapus history chat & hasil analisa (Posisi tetap tersimpan)")
         
         # Simple confirmation with Yes/No buttons only
         if 'confirm_delete_shown' not in st.session_state:
