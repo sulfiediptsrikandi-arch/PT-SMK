@@ -142,33 +142,32 @@ TEXTS = {
     'chat_cleared': {'id': "✅ Riwayat chat berhasil dihapus", 'en': "✅ Chat history cleared"},
     
     # Excel Download - TEMA NATURE
-    'upload_excel_label': {'id': "Unggah File Excel (.xlsx, .xls)", 'en': "Upload Excel File (.xlsx, .xls)"},
-    'excel_format_info': {'id': "📋 Excel harus memiliki kolom: 'Link CV' atau 'CV Link' atau 'URL', dan 'Nama' atau 'Name'", 'en': "📋 Excel must have columns: 'Link CV' or 'CV Link' or 'URL', and 'Nama' or 'Name'"},
-    'google_drive_guide': {'id': "🔒 PENTING untuk Link Google Drive", 'en': "🔒 IMPORTANT for Google Drive Links"},
+    'upload_excel_label': {'id': "📊 Unggah File Excel dengan Link CV", 'en': "📊 Upload Excel File with CV Links"},
     'excel_uploaded': {'id': "File Excel terunggah", 'en': "Excel file uploaded"},
     'download_all_cv': {'id': "🌳 Download & Proses Semua CV", 'en': "🌳 Download & Process All CVs"},
     'downloading_cv': {'id': "Mengunduh CV", 'en': "Downloading CV"},
     'cv_downloaded': {'id': "CV berhasil diunduh", 'en': "CV downloaded successfully"},
     'download_error': {'id': "Gagal mengunduh CV", 'en': "Failed to download CV"},
-    'invalid_excel_format': {'id': "Format Excel tidak valid atau kolom yang diperlukan tidak ditemukan", 'en': "Invalid Excel format or required columns not found"},
-    'no_valid_links': {'id': "Tidak ada link CV yang valid ditemukan", 'en': "No valid CV links found"},
-    'no_results_yet': {'id': "🌱 Belum ada hasil. Silakan proses resume terlebih dahulu.", 'en': "🌱 No results yet. Please process resumes first."},
+    'invalid_excel_format': {'id': "❌ Format Excel tidak valid atau tidak ditemukan kolom Link CV", 'en': "❌ Invalid Excel format or CV Link column not found"},
+    'no_valid_links': {'id': "❌ Tidak ditemukan link CV yang valid di file Excel", 'en': "❌ No valid CV links found in Excel file"},
+    'google_drive_guide': {'id': "📖 Panduan Google Drive/Form", 'en': "📖 Google Drive/Form Guide"},
     
-    # Export/Download
-    'export_results_excel': {'id': "🌳 Export ke Excel", 'en': "🌳 Export to Excel"},
-    'export_results_csv': {'id': "🌲 Export ke CSV", 'en': "🌲 Export to CSV"},
-    'export_results_json': {'id': "📋 Export ke JSON", 'en': "📋 Export to JSON"},
-    'download_filename': {'id': "recruitment_results", 'en': "recruitment_results"},
+    # Results & Export - TEMA NATURE
+    'no_results_yet': {'id': "🌱 Belum ada hasil. Unggah dan proses resume terlebih dahulu.", 'en': "🌱 No results yet. Upload and process resumes first."},
+    'export_results_excel': {'id': "📊 Export ke Excel", 'en': "📊 Export to Excel"},
+    'export_results_csv': {'id': "📄 Export ke CSV", 'en': "📄 Export to CSV"},
+    'export_results_json': {'id': "🔧 Export ke JSON", 'en': "🔧 Export to JSON"},
+    'download_filename': {'id': "hasil_rekrutmen", 'en': "recruitment_results"},
 }
 
 def get_text(key: str) -> str:
-    """Helper function untuk mengambil teks berdasarkan bahasa yang dipilih."""
+    """Get text in current language."""
     lang = st.session_state.get('language', 'id')
     return TEXTS.get(key, {}).get(lang, key)
 
 
-# --- 2. FUNGSI UNTUK PERSISTENT STORAGE ---
-def load_roles() -> Dict[str, str]:
+# --- 2. FUNGSI PENYIMPANAN DATA (PERSISTENT) ---
+def load_roles() -> dict:
     """Load roles from disk."""
     try:
         if ROLES_FILE.exists():
@@ -178,7 +177,7 @@ def load_roles() -> Dict[str, str]:
         logger.error(f"Error loading roles: {e}")
     return {}
 
-def save_roles(roles: Dict[str, str]):
+def save_roles(roles: dict):
     """Save roles to disk."""
     try:
         with open(ROLES_FILE, 'w', encoding='utf-8') as f:
@@ -186,7 +185,7 @@ def save_roles(roles: Dict[str, str]):
     except Exception as e:
         logger.error(f"Error saving roles: {e}")
 
-def load_analysis_memory() -> List[Dict]:
+def load_analysis_memory() -> list:
     """Load analysis memory from disk."""
     try:
         if MEMORY_FILE.exists():
@@ -196,7 +195,7 @@ def load_analysis_memory() -> List[Dict]:
         logger.error(f"Error loading memory: {e}")
     return []
 
-def save_analysis_memory(memory: List[Dict]):
+def save_analysis_memory(memory: list):
     """Save analysis memory to disk."""
     try:
         with open(MEMORY_FILE, 'w', encoding='utf-8') as f:
@@ -204,7 +203,7 @@ def save_analysis_memory(memory: List[Dict]):
     except Exception as e:
         logger.error(f"Error saving memory: {e}")
 
-def load_chat_history() -> List[Dict]:
+def load_chat_history() -> list:
     """Load chat history from disk."""
     try:
         if CHAT_HISTORY_FILE.exists():
@@ -214,7 +213,7 @@ def load_chat_history() -> List[Dict]:
         logger.error(f"Error loading chat history: {e}")
     return []
 
-def save_chat_history(history: List[Dict]):
+def save_chat_history(history: list):
     """Save chat history to disk."""
     try:
         with open(CHAT_HISTORY_FILE, 'w', encoding='utf-8') as f:
@@ -222,7 +221,7 @@ def save_chat_history(history: List[Dict]):
     except Exception as e:
         logger.error(f"Error saving chat history: {e}")
 
-def load_results_from_disk() -> List[Dict]:
+def load_results_from_disk() -> list:
     """Load batch results from disk."""
     try:
         if RESULTS_FILE.exists():
@@ -243,10 +242,20 @@ def save_results_to_disk():
 def clear_all_persistent_data():
     """Clear all persistent data files."""
     try:
+        files_deleted = 0
         for file in [ROLES_FILE, MEMORY_FILE, CHAT_HISTORY_FILE, RESULTS_FILE]:
             if file.exists():
                 file.unlink()
-        st.session_state.clear()
+                files_deleted += 1
+                logger.info(f"Deleted: {file}")
+        
+        # Clear session state
+        keys_to_clear = ['batch_results', 'chat_history']
+        for key in keys_to_clear:
+            if key in st.session_state:
+                st.session_state[key] = []
+        
+        logger.info(f"Successfully cleared {files_deleted} data files")
         return True
     except Exception as e:
         logger.error(f"Error clearing data: {e}")
@@ -280,52 +289,151 @@ def import_all_data(data: dict) -> bool:
         return False
 
 
-# --- 3. FUNGSI ANALISIS RESUME (KONSISTEN & DETERMINISTIK) ---
+# --- 3. FUNGSI ANALISIS RESUME (IMPROVED FOR ACCURACY) ---
+def extract_skills_from_requirements(requirements: str) -> List[str]:
+    """
+    Extract actual skills from requirements text with improved accuracy.
+    Supports multiple formats: bullet points, numbered lists, comma-separated, etc.
+    """
+    skills = set()
+    
+    # Split by common delimiters
+    lines = requirements.replace('\r\n', '\n').split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        
+        # Remove bullet points, numbers, dashes
+        line = re.sub(r'^[\-\*\•\d\.\)]+\s*', '', line)
+        
+        # Split by commas, semicolons, 'and', 'atau', '&'
+        parts = re.split(r'[,;]|\sand\s|\sdan\s|\satau\s|\sor\s|&', line, flags=re.IGNORECASE)
+        
+        for part in parts:
+            part = part.strip()
+            if len(part) < 2:
+                continue
+            
+            # Remove common phrases like "minimal", "minimum", "at least", etc.
+            part = re.sub(r'\b(minimal|minimum|at least|setidaknya|pengalaman|experience|tahun|year|years)\b', '', part, flags=re.IGNORECASE)
+            part = part.strip()
+            
+            # Only add if it has substance (not just numbers or single words)
+            if len(part) >= 3 and not part.isdigit():
+                skills.add(part.lower())
+    
+    # Also extract technical terms (capitalized words, acronyms)
+    tech_patterns = [
+        r'\b[A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*\b',  # Capitalized terms
+        r'\b[A-Z]{2,}\b',  # Acronyms (SQL, HTML, etc.)
+        r'\b[A-Z][a-z]+(?:\.[A-Z][a-z]+)+\b',  # Dotted notation (e.g., Node.js)
+    ]
+    
+    for pattern in tech_patterns:
+        matches = re.findall(pattern, requirements)
+        for match in matches:
+            if len(match) > 2:
+                skills.add(match.lower())
+    
+    return list(skills)
+
+
+def calculate_skills_match_percentage(resume_text: str, required_skills: List[str]) -> Tuple[int, List[str], List[str]]:
+    """
+    Calculate skill match percentage based on actual skills from requirements.
+    Returns: (percentage, matching_skills, missing_skills)
+    """
+    if not required_skills:
+        return 0, [], []
+    
+    resume_lower = resume_text.lower()
+    
+    matching_skills = []
+    missing_skills = []
+    
+    for skill in required_skills:
+        skill_lower = skill.lower()
+        # Check for exact match or partial match (for multi-word skills)
+        if skill_lower in resume_lower or any(word in resume_lower for word in skill_lower.split() if len(word) > 3):
+            matching_skills.append(skill)
+        else:
+            missing_skills.append(skill)
+    
+    # Calculate percentage
+    total_skills = len(required_skills)
+    matched_count = len(matching_skills)
+    percentage = int((matched_count / total_skills) * 100) if total_skills > 0 else 0
+    
+    return percentage, matching_skills, missing_skills
+
+
 def calculate_consistent_score(resume_text: str, requirements: str) -> Dict:
-    """Calculate a deterministic baseline score based on keyword matching."""
+    """
+    Calculate a deterministic baseline score based on actual skill requirements.
+    This is the CORE IMPROVEMENT for accurate percentage calculation.
+    """
     resume_lower = resume_text.lower()
     requirements_lower = requirements.lower()
     
-    # Extract common keywords from requirements
-    keywords = {
-        'education': ['bachelor', 'master', 'phd', 'sarjana', 's1', 's2', 's3', 'degree', 'university', 'universitas'],
-        'experience': ['year', 'tahun', 'experience', 'pengalaman', 'worked', 'bekerja'],
-        'certifications': ['certificate', 'certification', 'sertifikat', 'certified', 'licensed'],
-        'skills': []
-    }
+    # Extract skills from requirements
+    required_skills = extract_skills_from_requirements(requirements)
     
-    # Extract skill keywords from requirements
-    skill_patterns = [
-        r'\b[A-Z][a-z]+\b',  # Capitalized words (often technologies)
-        r'\b[A-Z]{2,}\b',     # Acronyms
-    ]
-    for pattern in skill_patterns:
-        matches = re.findall(pattern, requirements)
-        keywords['skills'].extend([m.lower() for m in matches if len(m) > 2])
+    # Calculate skill match percentage
+    skill_percentage, matching_skills, missing_skills = calculate_skills_match_percentage(resume_text, required_skills)
     
-    # Calculate matches
-    education_match = any(kw in resume_lower for kw in keywords['education'])
-    has_experience = any(kw in resume_lower for kw in keywords['experience'])
-    has_certifications = any(kw in resume_lower for kw in keywords['certifications'])
+    # Check for education keywords
+    education_keywords = ['bachelor', 'master', 'phd', 'sarjana', 's1', 's2', 's3', 'degree', 'university', 'universitas', 'diploma']
+    education_match = any(kw in resume_lower for kw in education_keywords)
     
-    matching_skills = [skill for skill in keywords['skills'] if skill in resume_lower]
-    total_skills = len(set(keywords['skills']))
-    skill_match_ratio = len(matching_skills) / max(total_skills, 1)
+    # Check for experience keywords and try to extract years
+    experience_keywords = ['year', 'tahun', 'experience', 'pengalaman', 'worked', 'bekerja']
+    has_experience = any(kw in resume_lower for kw in experience_keywords)
     
-    # Calculate score
+    # Try to find years of experience
+    years_match = re.findall(r'(\d+)\s*(?:tahun|year|years)', resume_lower)
+    years_of_experience = max([int(y) for y in years_match], default=0) if years_match else 0
+    
+    # Check for certifications
+    cert_keywords = ['certificate', 'certification', 'sertifikat', 'certified', 'licensed', 'lisence', 'sertifikat']
+    has_certifications = any(kw in resume_lower for kw in cert_keywords)
+    
+    # Calculate weighted score
     score = 0
-    score += 30 if education_match else 0
-    score += 30 if has_experience else 0
-    score += 15 if has_certifications else 0
-    score += int(25 * skill_match_ratio)
+    
+    # Skills matching is the MOST important (50% weight) - THIS IS THE KEY FIX
+    score += int(skill_percentage * 0.50)
+    
+    # Education (20% weight)
+    score += 20 if education_match else 0
+    
+    # Experience (20% weight)
+    if has_experience:
+        if years_of_experience >= 5:
+            score += 20
+        elif years_of_experience >= 3:
+            score += 15
+        elif years_of_experience >= 1:
+            score += 10
+        else:
+            score += 5
+    
+    # Certifications (10% weight)
+    score += 10 if has_certifications else 0
     
     return {
-        'score': score,
+        'score': min(score, 100),  # Cap at 100
         'education_match': education_match,
         'has_experience': has_experience,
+        'years_of_experience': years_of_experience,
         'has_certifications': has_certifications,
-        'matching_keywords': matching_skills[:10],  # Top 10
-        'skill_match_ratio': skill_match_ratio
+        'required_skills': required_skills,
+        'matching_skills': matching_skills,
+        'missing_skills': missing_skills,
+        'skill_match_percentage': skill_percentage,
+        'total_required_skills': len(required_skills),
+        'total_matched_skills': len(matching_skills)
     }
 
 def extract_json_from_response(response: str) -> dict:
@@ -432,14 +540,17 @@ def create_resume_analyzer() -> Optional[Agent]:
         return None
 
 
-# --- 6. FUNGSI UNTUK ANALISIS RESUME ---
+# --- 6. FUNGSI UNTUK ANALISIS RESUME (IMPROVED) ---
 def analyze_resume(
     resume_text: str,
     role: str,
     analyzer: Agent,
     max_retries: int = 3
 ) -> Tuple[bool, str, Dict]:
-    """Analyze resume with enhanced consistency and determinism."""
+    """
+    Analyze resume with enhanced consistency, accuracy, and skill-based matching.
+    CORE IMPROVEMENTS: Uses actual skills from requirements for accurate percentage calculation.
+    """
     
     roles = load_roles()
     requirements = roles.get(role, "")
@@ -450,61 +561,76 @@ def analyze_resume(
     lang = st.session_state.get('language', 'id')
     feedback_lang = "Bahasa Indonesia" if lang == 'id' else "English"
     
-    # Calculate baseline score for consistency
+    # Calculate baseline score with IMPROVED skill matching
     baseline_analysis = calculate_consistent_score(resume_text, requirements)
     baseline_score = baseline_analysis['score']
     
+    # Get the actual skills for accurate matching
+    required_skills_list = baseline_analysis['required_skills']
+    matching_skills_list = baseline_analysis['matching_skills']
+    missing_skills_list = baseline_analysis['missing_skills']
+    
     resume_hash = hashlib.md5(resume_text.encode()).hexdigest()[:8]
     
-    prompt = f"""You are an objective resume analyzer. Analyze this resume strictly and consistently.
+    prompt = f"""You are an objective resume analyzer. Analyze this resume strictly based on the SPECIFIC SKILLS required.
 
 RESUME HASH: {resume_hash} (for consistency tracking)
 
 ROLE REQUIREMENTS:
 {requirements}
 
+EXTRACTED REQUIRED SKILLS ({len(required_skills_list)} total):
+{', '.join(required_skills_list[:30])}
+
 RESUME TEXT:
 {resume_text}
 
-BASELINE ANALYSIS (Use this as reference):
+BASELINE ANALYSIS (Use this as reference - already calculated from actual skill requirements):
 - Calculated Score: {baseline_score}%
+- Total Required Skills: {baseline_analysis['total_required_skills']}
+- Matched Skills: {baseline_analysis['total_matched_skills']}
+- Skill Match %: {baseline_analysis['skill_match_percentage']}%
 - Education Match: {baseline_analysis['education_match']}
-- Experience Found: {baseline_analysis['has_experience']}
+- Experience: {baseline_analysis['years_of_experience']} years
 - Certifications: {baseline_analysis['has_certifications']}
-- Matching Keywords: {baseline_analysis['matching_keywords']}
 
-EVALUATION CRITERIA (Apply these EXACTLY the same way for every candidate):
-1. Education match (30%): Does education meet minimum requirements?
-2. Experience match (30%): Does experience meet minimum years required?
-3. Skills match (25%): Count matching skills vs required skills
-4. Certifications (15%): Does candidate have required certifications?
+EVALUATION CRITERIA (Apply strictly based on ACTUAL skills from requirements):
+1. Skills Match (50%): Match specific skills from requirements list above
+2. Education (20%): Does education meet requirements?
+3. Experience (20%): Years of relevant experience
+4. Certifications (10%): Relevant certifications
 
-SCORING RULES (Be strict and deterministic):
-- Score must be between 0-100
+SCORING RULES (Be consistent and deterministic):
+- Score MUST be based on skill matching percentage from requirements
 - If score >= 70: selected = true
 - If score < 70: selected = false
-- Use the baseline score as a reference point
-- Adjust only based on specific factors found in the resume
+- The baseline score of {baseline_score}% is already calculated from actual skill requirements
+- Match percentage MUST reflect actual skills matched vs required
 
 OUTPUT REQUIREMENTS:
 - Return ONLY a valid JSON object
 - No markdown formatting, no code blocks, no extra text
 - Feedback must be in {feedback_lang}
-- Be professional, specific, and consistent
+- Be professional, specific, and data-driven
+- List SPECIFIC skills that match and are missing
 
 Required JSON structure:
 {{
     "candidate_name": "Full Name from Resume or 'N/A'",
     "candidate_phone": "Phone Number or 'N/A'",
     "selected": true or false,
-    "feedback": "Professional evaluation in {feedback_lang} (minimum 100 words, explain specific match/mismatch with examples)",
-    "matching_skills": ["list", "of", "specific", "matching", "skills"],
-    "missing_skills": ["list", "of", "critical", "missing", "skills"],
+    "feedback": "Professional evaluation in {feedback_lang} (minimum 100 words, be specific about which skills matched/missing)",
+    "matching_skills": {matching_skills_list},
+    "missing_skills": {missing_skills_list},
     "experience_level": "junior or mid or senior",
     "match_percentage": {baseline_score}
 }}
 
-IMPORTANT: The match_percentage should be close to {baseline_score}% unless there are strong specific reasons to adjust it.
+IMPORTANT: 
+- The match_percentage ({baseline_score}%) is ALREADY calculated based on actual skill requirements
+- Only adjust if you find additional information not captured in baseline analysis
+- The matching_skills and missing_skills lists are provided from skill requirements analysis
+- Be consistent across all resumes
 
 Analyze now and return ONLY the JSON:"""
 
@@ -530,11 +656,19 @@ Analyze now and return ONLY the JSON:"""
             if not validate_analysis_result(result):
                 raise ValueError("Invalid result structure")
             
+            # Ensure match_percentage is set and reasonable
             if "match_percentage" not in result:
                 result["match_percentage"] = baseline_score
             else:
                 result["match_percentage"] = max(0, min(100, int(result["match_percentage"])))
             
+            # Use baseline skills if AI didn't provide them
+            if "matching_skills" not in result or not result["matching_skills"]:
+                result["matching_skills"] = matching_skills_list
+            if "missing_skills" not in result or not result["missing_skills"]:
+                result["missing_skills"] = missing_skills_list
+            
+            # Determine selection based on match percentage
             if result["match_percentage"] >= 70:
                 result["selected"] = True
             else:
@@ -558,7 +692,7 @@ Analyze now and return ONLY the JSON:"""
     return False, error_msg, {}
 
 
-# --- 7. FUNGSI URL VALIDATION & DOWNLOAD ---
+# --- 7. FUNGSI URL VALIDATION & DOWNLOAD (IMPROVED) ---
 def is_valid_url(url: str) -> bool:
     """Validate if string is a proper URL."""
     try:
@@ -570,11 +704,6 @@ def is_valid_url(url: str) -> bool:
 def convert_google_drive_link(url: str) -> str:
     """
     Convert various Google Drive link formats to direct download format.
-    Supports:
-    - /file/d/FILE_ID/view
-    - /open?id=FILE_ID
-    - /file/d/FILE_ID/edit
-    - etc.
     """
     if 'drive.google.com' not in url:
         return url
@@ -597,19 +726,14 @@ def convert_google_drive_link(url: str) -> str:
         logger.info(f"Converted Google Drive link: {url} -> {direct_link}")
         return direct_link
     
-    # Return original if we couldn't extract file ID
     logger.warning(f"Could not extract file ID from Google Drive link: {url}")
     return url
 
 def is_google_auth_error(content: bytes) -> bool:
-    """
-    Check if the downloaded content is a Google authentication/login page.
-    Returns True if it's an auth error (private file).
-    """
+    """Check if the downloaded content is a Google authentication/login page."""
     if not content:
         return False
     
-    # Check first 500 bytes for common Google auth patterns
     content_start = content[:500].decode('utf-8', errors='ignore').lower()
     
     auth_patterns = [
@@ -624,8 +748,11 @@ def is_google_auth_error(content: bytes) -> bool:
     
     return any(pattern in content_start for pattern in auth_patterns)
 
-def download_cv_from_url(url: str, candidate_name: str = "unknown") -> Optional[BytesIO]:
-    """Download CV from URL and return as BytesIO object. Supports Google Drive links."""
+def download_cv_from_url(url: str, candidate_name: str = "unknown", timeout: int = 45) -> Optional[BytesIO]:
+    """
+    Download CV from URL with improved timeout and error handling.
+    IMPROVEMENT: Increased timeout to 45 seconds and better error recovery.
+    """
     try:
         safe_name = re.sub(r'[^\w\s-]', '', candidate_name).strip().replace(' ', '_')
         
@@ -640,29 +767,25 @@ def download_cv_from_url(url: str, candidate_name: str = "unknown") -> Optional[
         }
         
         logger.info(f"Downloading CV from: {url}")
-        response = requests.get(url, headers=headers, timeout=30, stream=True, allow_redirects=True)
+        
+        # Use increased timeout for better reliability
+        response = requests.get(url, headers=headers, timeout=timeout, stream=True, allow_redirects=True)
         response.raise_for_status()
         
         content_type = response.headers.get('Content-Type', '')
         content_length = len(response.content)
         logger.info(f"Downloaded {content_length} bytes, Content-Type: {content_type}")
         
-        # Check if we got a Google authentication page instead of the file
+        # Check if we got a Google authentication page
         if is_google_auth_error(response.content):
             logger.error(f"Google Drive authentication required for {candidate_name}")
-            logger.error(f"The file at {original_url} is PRIVATE and requires Google login")
-            return None  # Return None to trigger specific error message
+            return None
         
-        # Warning saja jika content type bukan PDF, tapi tetap lanjutkan
-        if 'pdf' not in content_type.lower() and not url.lower().endswith('.pdf'):
-            logger.warning(f"URL may not be a PDF: {url} (Content-Type: {content_type})")
-            # Hanya cek header sebagai warning, jangan langsung reject
-            if not response.content.startswith(b'%PDF'):
-                logger.warning(f"Downloaded content may not be a PDF. First bytes: {response.content[:20]}")
-                # Check if it's HTML (likely an error page)
-                if response.content.startswith(b'<!DOCTYPE') or response.content.startswith(b'<html'):
-                    logger.error(f"Downloaded HTML instead of PDF - likely authentication or access issue")
-                    return None
+        # Check if content is likely PDF
+        if not response.content.startswith(b'%PDF'):
+            if response.content.startswith(b'<!DOCTYPE') or response.content.startswith(b'<html'):
+                logger.error(f"Downloaded HTML instead of PDF - likely authentication or access issue")
+                return None
         
         cv_file = BytesIO(response.content)
         cv_file.name = f"{safe_name}.pdf"
@@ -671,6 +794,9 @@ def download_cv_from_url(url: str, candidate_name: str = "unknown") -> Optional[
         logger.info(f"Successfully created BytesIO for {safe_name}.pdf")
         return cv_file
         
+    except requests.exceptions.Timeout:
+        logger.error(f"Timeout downloading CV from {url} after {timeout} seconds")
+        return None
     except requests.exceptions.RequestException as e:
         logger.error(f"Error downloading CV from {url}: {e}")
         return None
@@ -710,6 +836,7 @@ def read_excel_with_cv_links(excel_file) -> Optional[pd.DataFrame]:
         else:
             result_df['candidate_name'] = [f"Candidate_{i+1}" for i in range(len(df))]
         
+        # Remove empty rows
         result_df = result_df[result_df['cv_link'].notna()]
         result_df = result_df[result_df['cv_link'].astype(str).str.strip() != '']
         
@@ -719,8 +846,15 @@ def read_excel_with_cv_links(excel_file) -> Optional[pd.DataFrame]:
         logger.error(f"Error reading Excel file: {e}")
         return None
 
-def process_excel_cv_links(excel_file, role: str) -> List[Dict]:
-    """Process CVs from Excel file with links."""
+def process_excel_cv_links(excel_file, role: str, max_cvs: int = 50) -> List[Dict]:
+    """
+    Process CVs from Excel file with links.
+    IMPROVEMENTS:
+    1. Support up to 50 CVs (configurable)
+    2. Better error handling and recovery
+    3. Save progress after each CV
+    4. Continue on errors instead of stopping
+    """
     results = []
     
     df = read_excel_with_cv_links(excel_file)
@@ -728,15 +862,23 @@ def process_excel_cv_links(excel_file, role: str) -> List[Dict]:
     if df is None or df.empty:
         return []
     
+    # Limit to max_cvs
+    if len(df) > max_cvs:
+        st.warning(f"⚠️ File memiliki {len(df)} CV. Akan diproses {max_cvs} CV pertama. / File has {len(df)} CVs. Will process first {max_cvs} CVs.")
+        df = df.head(max_cvs)
+    
     total_cvs = len(df)
     progress_bar = st.progress(0)
     status_text = st.empty()
+    
+    processed_count = 0
+    error_count = 0
     
     for idx, row in df.iterrows():
         cv_link = row['cv_link']
         candidate_name = row['candidate_name']
         
-        progress = idx / total_cvs
+        progress = (idx + 1) / total_cvs
         progress_bar.progress(progress)
         status_text.text(f"⏳ {get_text('downloading_cv')} {idx+1}/{total_cvs}: {candidate_name}")
         
@@ -754,47 +896,59 @@ def process_excel_cv_links(excel_file, role: str) -> List[Dict]:
             'cv_link': cv_link
         }
         
-        if not is_valid_url(cv_link):
-            result['error'] = f"Invalid URL: {cv_link}"
-            result['status'] = 'error'
-            results.append(result)
-            st.warning(f"⚠️ {candidate_name}: Invalid URL")
-            continue
-        
-        cv_file = download_cv_from_url(cv_link, candidate_name)
-        
-        if cv_file is None:
-            # Check if it's a Google Drive link that might be private
-            if 'drive.google.com' in cv_link:
-                error_msg = "🔒 File Google Drive PRIVATE - Butuh akses"
-                result['error'] = f"Google Drive file is PRIVATE. Please set to public: {cv_link}"
-                st.error(f"❌ {candidate_name}: {error_msg}")
-                st.info("""
-                💡 **Cara Set File Google Drive ke Public:**
-                1. Buka Google Drive
-                2. Klik kanan file/folder → Share/Bagikan
-                3. Ubah ke: "Anyone with the link" / "Siapa saja yang memiliki link"
-                4. Permission: "Viewer" / "Dapat melihat"
-                5. Klik Done/Selesai
-                """)
-            else:
-                result['error'] = f"{get_text('download_error')}: {cv_link}"
-                st.warning(f"❌ {candidate_name}: {get_text('download_error')}")
+        try:
+            if not is_valid_url(cv_link):
+                result['error'] = f"Invalid URL: {cv_link}"
+                result['status'] = 'error'
+                results.append(result)
+                st.warning(f"⚠️ {candidate_name}: Invalid URL")
+                error_count += 1
+                continue
             
+            cv_file = download_cv_from_url(cv_link, candidate_name, timeout=45)
+            
+            if cv_file is None:
+                if 'drive.google.com' in cv_link:
+                    error_msg = "🔒 File Google Drive PRIVATE - Butuh akses"
+                    result['error'] = f"Google Drive file is PRIVATE. Please set to public: {cv_link}"
+                    st.error(f"❌ {candidate_name}: {error_msg}")
+                else:
+                    result['error'] = f"{get_text('download_error')}: {cv_link}"
+                    st.warning(f"❌ {candidate_name}: {get_text('download_error')}")
+                
+                result['status'] = 'error'
+                results.append(result)
+                error_count += 1
+                
+                # IMPROVEMENT: Continue processing instead of stopping
+                continue
+            
+            st.info(f"✅ {candidate_name}: {get_text('cv_downloaded')}")
+            
+            # Process the downloaded CV
+            processed_result = process_single_candidate(cv_file, role)
+            processed_result['cv_link'] = cv_link
+            processed_result['candidate_name'] = candidate_name
+            results.append(processed_result)
+            processed_count += 1
+            
+            # IMPROVEMENT: Save progress after each successful processing
+            st.session_state.batch_results = results
+            save_results_to_disk()
+            
+        except Exception as e:
+            logger.error(f"Error processing {candidate_name}: {e}")
+            result['error'] = f"Processing error: {str(e)}"
             result['status'] = 'error'
             results.append(result)
+            error_count += 1
+            st.error(f"❌ Error: {candidate_name} - {str(e)}")
+            
+            # IMPROVEMENT: Continue processing next CV
             continue
-        
-        st.info(f"✅ {candidate_name}: {get_text('cv_downloaded')}")
-        
-        # Process the downloaded CV
-        processed_result = process_single_candidate(cv_file, role)
-        processed_result['cv_link'] = cv_link
-        processed_result['candidate_name'] = candidate_name  # Override with Excel name
-        results.append(processed_result)
     
     progress_bar.progress(1.0)
-    status_text.text(f"✅ {get_text('processing_complete')}")
+    status_text.text(f"✅ {get_text('processing_complete')} - Processed: {processed_count}, Errors: {error_count}")
     
     return results
 
@@ -1000,21 +1154,19 @@ def display_chatbot_interface():
         chatbot = create_chatbot()
         if chatbot:
             with st.chat_message("assistant"):
-                with st.spinner("🌿 Berpikir..."):
+                with st.spinner("🤔"):
                     try:
                         response = chatbot.run(prompt)
-                        assistant_message = ""
-                        for m in response.messages:
-                            if m.role == 'assistant' and m.content:
-                                assistant_message = m.content
+                        
+                        bot_message = None
+                        for msg in response.messages:
+                            if msg.role == 'assistant' and msg.content:
+                                bot_message = msg.content
                                 break
                         
-                        if assistant_message:
-                            st.markdown(assistant_message)
-                            st.session_state.chat_history.append({
-                                "role": "assistant",
-                                "content": assistant_message
-                            })
+                        if bot_message:
+                            st.markdown(bot_message)
+                            st.session_state.chat_history.append({"role": "assistant", "content": bot_message})
                             save_chat_history(st.session_state.chat_history)
                         else:
                             st.error("Tidak ada respons dari AI")
@@ -1030,9 +1182,6 @@ def display_role_management():
     st.header(get_text('tab_manage_roles'))
     
     roles = load_roles()
-    
-    # Data Management Section - MOVED TO SEPARATE TAB
-    # (Section removed - now in tab_data_management)
     
     # Add/Edit Role Section
     tab_add, tab_edit = st.tabs([get_text('add_role_header'), get_text('edit_role_header')])
@@ -1094,47 +1243,14 @@ def display_role_management():
                         st.rerun()
         else:
             st.info(get_text('no_roles_available'))
-    
-    # Current Roles Display - DISABLED (User request)
-    # if roles:
-    #     st.markdown("---")
-    #     st.subheader(get_text('current_roles_header'))
-    #     
-    #     for role_id, requirements in roles.items():
-    #         with st.expander(f"🌱 {role_id.replace('_', ' ').title()}", expanded=False):
-    #             st.markdown(requirements)
-    #     
-    #     # Export/Import Roles
-    #     col1, col2 = st.columns(2)
-    #     with col1:
-    #         if st.button(get_text('export_roles_button'), use_container_width=True):
-    #             st.download_button(
-    #                 label="📥 Download JSON",
-    #                 data=json.dumps(roles, indent=2, ensure_ascii=False),
-    #                 file_name="roles.json",
-    #                 mime="application/json",
-    #                 use_container_width=True
-    #             )
-    #     
-    #     with col2:
-    #         uploaded_roles = st.file_uploader(
-    #             get_text('import_roles_button'),
-    #             type=['json'],
-    #             key='roles_uploader'
-    #         )
-    #         if uploaded_roles:
-    #             try:
-    #                 imported_roles = json.load(uploaded_roles)
-    #                 save_roles(imported_roles)
-    #                 st.success(get_text('import_roles_success'))
-    #                 st.rerun()
-    #             except:
-    #                 st.error(get_text('import_roles_error'))
 
 
-# --- 11.5 DATA MANAGEMENT DISPLAY ---
+# --- 11.5 DATA MANAGEMENT DISPLAY (IMPROVED DELETE FUNCTIONALITY) ---
 def display_data_management():
-    """Display data management interface for export/import/clear operations."""
+    """
+    Display data management interface for export/import/clear operations.
+    IMPROVEMENT: Better delete confirmation flow.
+    """
     st.header(get_text('tab_data_management'))
     
     st.info("💾 " + get_text('storage_info'))
@@ -1143,14 +1259,17 @@ def display_data_management():
     roles = load_roles()
     memory = load_analysis_memory()
     chat_history = load_chat_history()
+    batch_results = st.session_state.get('batch_results', [])
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("📋 Posisi / Roles", len(roles))
     with col2:
         st.metric("🧠 Analisa Tersimpan", len(memory))
     with col3:
         st.metric("💬 Chat History", len(chat_history))
+    with col4:
+        st.metric("📊 Hasil Batch", len(batch_results))
     
     st.markdown("---")
     
@@ -1162,7 +1281,7 @@ def display_data_management():
     with col1:
         st.markdown("### 🌳 Export Semua Data")
         st.write("Backup semua data aplikasi dalam satu file JSON")
-        if st.button(get_text('export_all_data'), use_container_width=True):
+        if st.button(get_text('export_all_data'), use_container_width=True, key="export_btn"):
             all_data = export_all_data()
             st.download_button(
                 label="📥 Download Backup",
@@ -1197,19 +1316,35 @@ def display_data_management():
     
     with col3:
         st.markdown("### 🍂 Hapus Semua Data")
-        st.write("⚠️ Hapus SEMUA data aplikasi (tidak dapat dibatalkan!)")
-        if st.button(get_text('clear_all_data'), type="secondary", use_container_width=True):
-            with st.form("confirm_delete_form"):
-                st.warning(get_text('confirm_clear_data'))
-                confirm = st.checkbox("Ya, saya yakin ingin menghapus semua data")
-                if st.form_submit_button("🗑️ Konfirmasi Hapus", type="primary"):
-                    if confirm:
+        st.write("⚠️ Hapus SEMUA data aplikasi")
+        
+        # IMPROVEMENT: Use checkbox for confirmation first
+        if 'confirm_delete_shown' not in st.session_state:
+            st.session_state.confirm_delete_shown = False
+        
+        if st.button(get_text('clear_all_data'), type="secondary", use_container_width=True, key="show_delete_confirm"):
+            st.session_state.confirm_delete_shown = True
+        
+        if st.session_state.confirm_delete_shown:
+            st.warning(get_text('confirm_clear_data'))
+            confirm_checkbox = st.checkbox("✅ Ya, saya yakin ingin menghapus semua data / Yes, I'm sure I want to delete all data", key="delete_confirm_checkbox")
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("🗑️ Konfirmasi Hapus / Confirm Delete", type="primary", use_container_width=True, disabled=not confirm_checkbox, key="final_delete_btn"):
+                    if confirm_checkbox:
                         if clear_all_persistent_data():
                             st.success(get_text('all_data_cleared'))
+                            st.session_state.confirm_delete_shown = False
                             time.sleep(1)
                             st.rerun()
-                    else:
-                        st.error("Silakan centang checkbox untuk konfirmasi")
+                        else:
+                            st.error("Error clearing data")
+            
+            with col_b:
+                if st.button("❌ Batal / Cancel", use_container_width=True, key="cancel_delete_btn"):
+                    st.session_state.confirm_delete_shown = False
+                    st.rerun()
 
 
 # --- 12. RESULTS TABLE DISPLAY ---
@@ -1229,6 +1364,8 @@ def create_excel_download(results: List[Dict], lang: str = 'id') -> BytesIO:
             'Telepon / Phone': r.get('candidate_phone', 'N/A'),
             'OCR': '✓' if r.get('ocr_used', False) else '✗',
             'Feedback': r.get('feedback', ''),
+            'Matching Skills': ', '.join(r.get('matching_skills', [])),
+            'Missing Skills': ', '.join(r.get('missing_skills', [])),
             'Error': r.get('error', '')
         })
     
@@ -1374,10 +1511,14 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
                     st.markdown(result['feedback'])
                 
                 if result.get('matching_skills'):
-                    st.success(f"**✅ Matching Skills:** {', '.join(result['matching_skills'])}")
+                    st.success(f"**✅ Matching Skills ({len(result['matching_skills'])}):** {', '.join(result['matching_skills'][:10])}")
+                    if len(result['matching_skills']) > 10:
+                        st.caption(f"... and {len(result['matching_skills']) - 10} more")
                 
                 if result.get('missing_skills'):
-                    st.warning(f"**❌ Missing Skills:** {', '.join(result['missing_skills'])}")
+                    st.warning(f"**❌ Missing Skills ({len(result['missing_skills'])}):** {', '.join(result['missing_skills'][:10])}")
+                    if len(result['missing_skills']) > 10:
+                        st.caption(f"... and {len(result['missing_skills']) - 10} more")
 
 
 # --- 13. MAIN APPLICATION ---
@@ -1391,7 +1532,7 @@ def main():
         initial_sidebar_state="expanded"
     )
     
-    # NATURE THEME CSS
+    # NATURE THEME CSS (TIDAK DIUBAH)
     st.markdown("""
         <style>
         /* Main colors - Nature palette */
@@ -1798,39 +1939,26 @@ def main():
         .stMarkdown {
             color: var(--dark-green);
         }
-        
-        /* Widget labels */
-        label {
-            color: var(--dark-green) !important;
-            font-weight: 600;
-        }
-        
-        /* Caption text */
-        .stCaption {
-            color: var(--earth-brown) !important;
-        }
         </style>
     """, unsafe_allow_html=True)
     
     # Initialize session state
     if 'language' not in st.session_state:
-        st.session_state.language = 'id'
+        st.session_state['language'] = 'id'
     if 'batch_results' not in st.session_state:
-        st.session_state.batch_results = load_results_from_disk()
+        st.session_state['batch_results'] = load_results_from_disk()
     if 'uploader_key' not in st.session_state:
-        st.session_state.uploader_key = str(uuid.uuid4())
-    if 'enable_ocr' not in st.session_state:
-        st.session_state.enable_ocr = False
+        st.session_state['uploader_key'] = str(uuid.uuid4())
     
     # Sidebar
     with st.sidebar:
         display_logo_in_sidebar()
         
-        st.title(get_text('config_header'))
+        st.markdown(f"## {get_text('config_header')}")
         
         # Language selector
         lang_options = ['Indonesia', 'English']
-        current_lang = 'Indonesia' if st.session_state.language == 'id' else 'English'
+        current_lang = 'Indonesia' if st.session_state.get('language', 'id') == 'id' else 'English'
         st.selectbox(
             get_text('language_select'),
             lang_options,
@@ -1839,8 +1967,6 @@ def main():
             on_change=set_language
         )
         
-        st.markdown("---")
-        
         # OpenAI Settings
         with st.expander(get_text('openai_settings'), expanded=True):
             api_key = st.text_input(
@@ -1848,41 +1974,28 @@ def main():
                 type="password",
                 value=st.session_state.get('openai_api_key', ''),
                 help=get_text('api_key_help'),
-                key='api_key_input'
+                key='openai_api_key_input'
             )
-            if api_key:
-                st.session_state.openai_api_key = api_key
+            st.session_state['openai_api_key'] = api_key
         
         # OCR Settings
-        if OCR_AVAILABLE:
-            with st.expander(get_text('ocr_settings'), expanded=False):
-                st.session_state.enable_ocr = st.checkbox(
-                    get_text('enable_ocr'),
-                    value=st.session_state.get('enable_ocr', False),
-                    help=get_text('ocr_help')
-                )
-        
-        st.markdown("---")
-        st.info(get_text('storage_info'))
-        
-        # Reset button
-        if st.button(get_text('reset_button'), use_container_width=True):
-            st.session_state.clear()
-            st.rerun()
+        with st.expander(get_text('ocr_settings'), expanded=False):
+            st.checkbox(
+                get_text('enable_ocr'),
+                value=st.session_state.get('enable_ocr', False),
+                help=get_text('ocr_help'),
+                key='enable_ocr'
+            )
     
     # Main content
     st.title(get_text('app_title'))
     
     # Check configuration
-    missing_config = []
     if not st.session_state.get('openai_api_key'):
-        missing_config.append("OpenAI API Key")
+        st.warning(f"{get_text('warning_missing_config')} {get_text('api_key_label')}")
+        return
     
-    if missing_config:
-        st.warning(f"{get_text('warning_missing_config')}{', '.join(missing_config)}")
-        st.stop()
-    
-    # Tabs dengan emoji nature
+    # Main tabs
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         get_text('tab_upload'),
         get_text('tab_download_excel'),
@@ -1894,10 +2007,6 @@ def main():
     
     # TAB 1: Upload & Process
     with tab1:
-        st.header(get_text('tab_upload'))
-        
-        st.info(get_text('batch_info'))
-        
         roles = load_roles()
         if not roles:
             st.warning(get_text('no_roles_available'))
@@ -1908,7 +2017,7 @@ def main():
                 get_text('select_role'),
                 role_options,
                 format_func=lambda x: x.replace('_', ' ').title(),
-                key='batch_selected_role'
+                key='selected_role'
             )
             
             with st.expander(get_text('view_skills_expander'), expanded=False):
@@ -1916,85 +2025,81 @@ def main():
             
             st.markdown("---")
             
+            st.info(get_text('batch_info'))
+            
+            # Upload multiple PDFs
             uploaded_files = st.file_uploader(
                 get_text('upload_resume_label'),
                 type=['pdf'],
                 accept_multiple_files=True,
-                key=f"batch_uploader_{st.session_state.uploader_key}",
-                help=get_text('clear_resumes_help')
+                key=st.session_state.get('uploader_key', 'default_uploader')
             )
             
             if uploaded_files:
-                st.success(f"📁 {len(uploaded_files)} {get_text('resumes_uploaded')}")
+                st.success(f"✅ {len(uploaded_files)} {get_text('resumes_uploaded')}")
                 
-                col1, col2 = st.columns([3, 1])
+                # Limit to 50 files
+                if len(uploaded_files) > 50:
+                    st.warning(f"⚠️ Maksimal 50 CV. Akan diproses 50 file pertama. / Maximum 50 CVs. Will process first 50 files.")
+                    uploaded_files = uploaded_files[:50]
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if st.button(get_text('process_all_button'), type="primary", use_container_width=True):
+                        results = []
+                        progress_bar = st.progress(0)
+                        status_text = st.empty()
+                        
+                        for idx, resume_file in enumerate(uploaded_files):
+                            progress = idx / len(uploaded_files)
+                            progress_bar.progress(progress)
+                            status_text.text(f"{get_text('processing_status')} {idx+1}/{len(uploaded_files)}: {resume_file.name}")
+                            
+                            result = process_single_candidate(resume_file, role)
+                            results.append(result)
+                            
+                            # Save progress after each file
+                            st.session_state.batch_results = results
+                            save_results_to_disk()
+                        
+                        progress_bar.progress(1.0)
+                        status_text.text(f"✅ {get_text('processing_complete')}")
+                        
+                        st.session_state.batch_results = results
+                        save_results_to_disk()
+                        
+                        selected_count = sum(1 for r in results if r['status'] == 'selected')
+                        rejected_count = sum(1 for r in results if r['status'] == 'rejected')
+                        error_count = sum(1 for r in results if r['status'] == 'error')
+                        
+                        summary = f"🌿 {get_text('processing_complete')}\n"
+                        summary += f"📊 Total: {len(results)} | ✅ {selected_count} | ❌ {rejected_count} | ⚠️ {error_count}"
+                        
+                        st.toast(summary, icon="✅")
+                        st.success(get_text('processing_complete'))
+                        st.info(f"👉 {get_text('tab_results')}")
+                
                 with col2:
-                    if st.button(get_text('clear_resumes_button'), type="secondary", use_container_width=True):
+                    if st.button(get_text('clear_resumes_button'), type="secondary", use_container_width=True, help=get_text('clear_resumes_help')):
                         clear_batch_resumes()
+                        st.success("✅ Cleared!")
                         st.rerun()
-                
-                st.markdown("---")
-                
-                if st.button(get_text('process_all_button'), type='primary', use_container_width=True):
-                    results = []
-                    progress_bar = st.progress(0)
-                    status_text = st.empty()
-                    
-                    for idx, resume_file in enumerate(uploaded_files):
-                        progress = idx / len(uploaded_files)
-                        progress_bar.progress(progress)
-                        status_text.text(f"{get_text('processing_status')} {idx+1}/{len(uploaded_files)}: {resume_file.name}")
-                        
-                        result = process_single_candidate(resume_file, role)
-                        results.append(result)
-                        
-                        if result['ocr_used']:
-                            st.info(f"🔍 {resume_file.name}: {get_text('ocr_processing')}")
-                    
-                    progress_bar.progress(1.0)
-                    status_text.text(f"✅ {get_text('processing_complete')}")
-                    
-                    # Sort by match percentage
-                    results.sort(key=lambda x: x.get('match_percentage', 0), reverse=True)
-                    
-                    # Save to session state
-                    st.session_state.batch_results = results
-                    save_results_to_disk()
-                    
-                    st.success(get_text('processing_complete'))
-                    
-                    # Show summary
-                    selected_count = sum(1 for r in results if r['status'] == 'selected')
-                    rejected_count = sum(1 for r in results if r['status'] == 'rejected')
-                    error_count = sum(1 for r in results if r['status'] == 'error')
-                    ocr_count = sum(1 for r in results if r.get('ocr_used', False))
-                    
-                    summary = f"🌿 {get_text('processing_complete')}\n"
-                    summary += f"📊 Total: {len(results)} | ✅ {selected_count} | ❌ {rejected_count} | ⚠️ {error_count}"
-                    if ocr_count > 0:
-                        summary += f" | 🔍 OCR: {ocr_count}"
-                    
-                    st.toast(summary, icon="✅")
-                    st.info(f"👉 {get_text('tab_results')} atau {get_text('tab_chatbot')}")
     
     # TAB 2: Download from Excel
     with tab2:
-        st.header(get_text('tab_download_excel'))
+        st.markdown("### 🌲 Download CV dari Excel / Download CV from Excel")
         
-        st.info(get_text('excel_format_info'))
-        
-        # Panduan Link CV sebagai Expander
-        lang = st.session_state.get('language', 'id')
-        
-        if lang == 'id':
+        # Guide for Google Drive
+        if st.session_state.get('language', 'id') == 'id':
             guide_content = """
-            Jika menggunakan Google Form/Drive, pastikan file **PUBLIC**:
+            Jika menggunakan Google Form/Drive, pastikan file bersifat **PUBLIC**:
             
             1. **Buka Google Drive**
-            2. **Klik kanan folder/file** → **Share / Bagikan**
-            3. **Ubah ke:** *"Anyone with the link"* / *"Siapa saja yang memiliki link"*
-            4. **Permission:** *"Viewer"* / *"Dapat melihat"*
-            5. **Klik Done / Selesai**
+            2. **Klik kanan folder/file** → **Bagikan / Share**
+            3. **Ubah ke:** *"Siapa saja yang memiliki link"* / *"Anyone with the link"*
+            4. **Permission:** *"Dapat melihat"* / *"Viewer"*
+            5. **Klik Selesai / Done**
             
             ---
             
@@ -2074,13 +2179,20 @@ def main():
                     if df_preview is not None and not df_preview.empty:
                         st.markdown("### 👀 Preview Data")
                         st.dataframe(df_preview, use_container_width=True)
-                        st.success(f"✅ Ditemukan {len(df_preview)} kandidat dengan link CV valid / Found {len(df_preview)} candidates with valid CV links")
+                        
+                        cv_count = len(df_preview)
+                        if cv_count > 50:
+                            st.warning(f"⚠️ File memiliki {cv_count} CV. Akan diproses maksimal 50 CV. / File has {cv_count} CVs. Will process maximum 50 CVs.")
+                            st.info("💡 Tip: Pisahkan file Excel menjadi beberapa file dengan maksimal 50 baris per file. / Split Excel file into multiple files with maximum 50 rows each.")
+                        else:
+                            st.success(f"✅ Ditemukan {cv_count} kandidat dengan link CV valid / Found {cv_count} candidates with valid CV links")
                         
                         st.markdown("---")
                         
                         if st.button(get_text('download_all_cv'), type='primary', use_container_width=True):
                             with st.spinner(get_text('downloading_cv')):
-                                results = process_excel_cv_links(excel_file, role)
+                                # Process up to 50 CVs
+                                results = process_excel_cv_links(excel_file, role, max_cvs=50)
                                 
                                 if results:
                                     results.sort(key=lambda x: x.get('match_percentage', 0), reverse=True)
