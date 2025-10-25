@@ -589,9 +589,17 @@ def extract_text_from_pdf(pdf_file) -> str:
             page_text = page.extract_text()
             if page_text:
                 text += page_text + "\n"
+        
+        # PERBAIKAN: Reset pointer setelah selesai membaca
+        pdf_file.seek(0)
         return text.strip()
     except Exception as e:
         logger.error(f"PDF extraction error: {e}")
+        # PERBAIKAN: Reset pointer jika error terjadi
+        try:
+            pdf_file.seek(0)
+        except:
+            pass
         return ""
 
 def extract_text_with_ocr(pdf_file) -> Tuple[str, bool]:
@@ -602,18 +610,39 @@ def extract_text_with_ocr(pdf_file) -> Tuple[str, bool]:
     # If text is too short, it might be an image-based PDF
     if len(text.strip()) < 100 and OCR_AVAILABLE:
         try:
+            # PERBAIKAN: Reset file pointer dan baca bytes untuk OCR
             pdf_file.seek(0)
-            images = convert_from_bytes(pdf_file.read())
+            pdf_bytes = pdf_file.read()
+            
+            # PERBAIKAN: Pastikan kita punya data
+            if not pdf_bytes or len(pdf_bytes) == 0:
+                logger.error("PDF file is empty for OCR")
+                return text, False
+            
+            # PERBAIKAN: Reset pointer setelah read
+            pdf_file.seek(0)
+            
+            logger.info(f"Converting PDF to images for OCR ({len(pdf_bytes)} bytes)...")
+            images = convert_from_bytes(pdf_bytes)
             
             ocr_text = ""
-            for img in images:
-                ocr_text += pytesseract.image_to_string(img) + "\n"
+            for idx, img in enumerate(images):
+                logger.info(f"OCR processing page {idx+1}/{len(images)}...")
+                page_text = pytesseract.image_to_string(img)
+                ocr_text += page_text + "\n"
             
             if len(ocr_text.strip()) > len(text.strip()):
-                logger.info("OCR produced better results")
+                logger.info(f"OCR produced better results: {len(ocr_text)} chars vs {len(text)} chars")
                 return ocr_text.strip(), True
+            else:
+                logger.info(f"Normal extraction better: {len(text)} chars vs {len(ocr_text)} chars")
         except Exception as e:
             logger.error(f"OCR error: {e}")
+            # PERBAIKAN: Reset pointer jika error terjadi
+            try:
+                pdf_file.seek(0)
+            except:
+                pass
     
     return text, False
 
