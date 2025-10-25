@@ -11,3 +11,6 @@ requests>=2.31.0
 pdf2image>=1.16.0
 pytesseract>=0.3.10
 Pillow>=10.0.0
+
+# Date/Time Utilities (NEW!)
+python-dateutil>=2.8.2
