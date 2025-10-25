@@ -283,17 +283,25 @@ def save_analysis_cache(cache: dict):
 def clear_all_data():
     """Hapus semua data termasuk roles, memory, chat history, results, dan cache"""
     try:
+        # Delete files
+        deleted_count = 0
         for file in [ROLES_FILE, MEMORY_FILE, CHAT_HISTORY_FILE, RESULTS_FILE, CACHE_FILE]:
             if file.exists():
                 file.unlink()
+                deleted_count += 1
+                logger.info(f"Deleted: {file.name}")
         
         # Reset session state
-        st.session_state.batch_results = []
-        st.session_state.chat_messages = []
-        st.session_state.analysis_memory = []
-        st.session_state.analysis_cache = {}
+        if 'batch_results' in st.session_state:
+            st.session_state.batch_results = []
+        if 'chat_messages' in st.session_state:
+            st.session_state.chat_messages = []
+        if 'analysis_memory' in st.session_state:
+            st.session_state.analysis_memory = []
+        if 'analysis_cache' in st.session_state:
+            st.session_state.analysis_cache = {}
         
-        logger.info("All data cleared successfully")
+        logger.info(f"All data cleared successfully. Deleted {deleted_count} files")
         return True
     except Exception as e:
         logger.error(f"Error clearing data: {e}")
@@ -828,44 +836,109 @@ def convert_google_drive_link(url: str) -> str:
     return url
 
 
-def download_pdf_from_url(url: str, timeout: int = 30) -> Optional[bytes]:
+def download_pdf_from_url(url: str, timeout: int = 30, max_retries: int = 3) -> Optional[bytes]:
     """
-    Download PDF dari URL
+    Download PDF dari URL dengan retry mechanism
     
     Args:
         url: URL file PDF
         timeout: Timeout dalam detik
+        max_retries: Maksimal retry attempts
     
     Returns:
         Optional[bytes]: PDF bytes atau None jika gagal
     """
-    try:
-        # Konversi Google Drive link jika perlu
-        if 'drive.google.com' in url:
-            url = convert_google_drive_link(url)
-        
-        # Set headers untuk avoid blocking
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-        
-        response = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
-        
-        if response.status_code == 200:
-            # Validasi bahwa ini adalah PDF
-            content_type = response.headers.get('Content-Type', '')
-            if 'pdf' in content_type.lower() or response.content[:4] == b'%PDF':
-                return response.content
+    for attempt in range(max_retries):
+        try:
+            # Konversi Google Drive link jika perlu
+            if 'drive.google.com' in url:
+                url = convert_google_drive_link(url)
+            
+            # Set headers untuk avoid blocking
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/pdf,application/octet-stream,*/*',
+                'Accept-Encoding': 'gzip, deflate',
+                'Connection': 'keep-alive'
+            }
+            
+            # Download dengan timeout dan streaming untuk file besar
+            response = requests.get(
+                url, 
+                headers=headers, 
+                timeout=timeout, 
+                allow_redirects=True,
+                stream=True
+            )
+            
+            if response.status_code == 200:
+                # Validasi content type
+                content_type = response.headers.get('Content-Type', '')
+                
+                # Read content dengan limit size (max 50MB)
+                max_size = 50 * 1024 * 1024  # 50MB
+                content = b''
+                
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        content += chunk
+                        if len(content) > max_size:
+                            logger.warning(f"File too large (>50MB): {url}")
+                            return None
+                
+                # Validasi bahwa ini adalah PDF
+                if 'pdf' in content_type.lower() or content[:4] == b'%PDF':
+                    logger.info(f"Successfully downloaded PDF from {url} ({len(content)} bytes)")
+                    return content
+                else:
+                    logger.warning(f"URL does not point to a PDF file: {content_type}")
+                    return None
+            
+            elif response.status_code == 404:
+                logger.error(f"File not found (404): {url}")
+                return None  # Don't retry for 404
+            
+            elif response.status_code == 403:
+                logger.error(f"Access forbidden (403): {url}")
+                return None  # Don't retry for 403
+            
             else:
-                logger.warning(f"URL does not point to a PDF file: {content_type}")
+                logger.error(f"Failed to download from {url}: HTTP {response.status_code}")
+                if attempt < max_retries - 1:
+                    logger.info(f"Retrying... (attempt {attempt + 2}/{max_retries})")
+                    time.sleep(2 ** attempt)  # Exponential backoff
+                    continue
                 return None
-        else:
-            logger.error(f"Failed to download from {url}: HTTP {response.status_code}")
+        
+        except requests.exceptions.Timeout:
+            logger.error(f"Timeout error for {url}")
+            if attempt < max_retries - 1:
+                logger.info(f"Retrying... (attempt {attempt + 2}/{max_retries})")
+                time.sleep(2 ** attempt)
+                continue
+            return None
+        
+        except requests.exceptions.ConnectionError:
+            logger.error(f"Connection error for {url}")
+            if attempt < max_retries - 1:
+                logger.info(f"Retrying... (attempt {attempt + 2}/{max_retries})")
+                time.sleep(2 ** attempt)
+                continue
+            return None
+        
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request error for {url}: {e}")
+            if attempt < max_retries - 1:
+                logger.info(f"Retrying... (attempt {attempt + 2}/{max_retries})")
+                time.sleep(2 ** attempt)
+                continue
+            return None
+        
+        except Exception as e:
+            logger.error(f"Unexpected error downloading from {url}: {e}")
             return None
     
-    except Exception as e:
-        logger.error(f"Error downloading from {url}: {e}")
-        return None
+    return None
 
 
 def read_excel_with_cv_links(excel_file) -> Optional[pd.DataFrame]:
@@ -911,7 +984,7 @@ def read_excel_with_cv_links(excel_file) -> Optional[pd.DataFrame]:
 
 def process_excel_cv_links(excel_file, role: str) -> List[dict]:
     """
-    Proses CV dari link di file Excel
+    Proses CV dari link di file Excel dengan error handling yang lebih baik
     
     Args:
         excel_file: File Excel dengan link CV
@@ -922,121 +995,212 @@ def process_excel_cv_links(excel_file, role: str) -> List[dict]:
     """
     results = []
     
-    # Baca Excel
-    df = read_excel_with_cv_links(excel_file)
-    
-    if df is None or df.empty:
-        return results
-    
-    # Load requirements
-    roles = load_roles()
-    requirements = roles.get(role, "No requirements specified")
-    
-    # Load cache
-    cache = load_analysis_cache()
-    
-    # Identifikasi kolom
-    link_column = None
-    name_column = None
-    
-    for col in df.columns:
-        col_lower = col.lower()
-        if 'link' in col_lower or 'url' in col_lower:
-            link_column = col
-        if 'nama' in col_lower or 'name' in col_lower:
-            name_column = col
-    
-    total = min(len(df), MAX_BATCH_SIZE)
-    
-    # Progress bar
-    progress_bar = st.progress(0)
-    status_text = st.empty()
-    
-    for idx, row in df.head(MAX_BATCH_SIZE).iterrows():
-        try:
-            # Update progress
-            progress = (idx + 1) / total
-            progress_bar.progress(progress)
+    try:
+        # Baca Excel
+        df = read_excel_with_cv_links(excel_file)
+        
+        if df is None or df.empty:
+            st.error("❌ Tidak ada data valid di file Excel")
+            return results
+        
+        # Load requirements
+        roles = load_roles()
+        requirements = roles.get(role, "No requirements specified")
+        
+        # Load cache
+        cache = load_analysis_cache()
+        
+        # Identifikasi kolom
+        link_column = None
+        name_column = None
+        
+        for col in df.columns:
+            col_lower = col.lower()
+            if 'link' in col_lower or 'url' in col_lower:
+                link_column = col
+            if 'nama' in col_lower or 'name' in col_lower:
+                name_column = col
+        
+        if not link_column:
+            st.error("❌ Kolom link CV tidak ditemukan")
+            return results
+        
+        # Reset index untuk sequential numbering
+        df = df.reset_index(drop=True)
+        total = min(len(df), MAX_BATCH_SIZE)
+        
+        # Progress tracking containers
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        metrics_container = st.empty()
+        
+        # Process tracking
+        processed = 0
+        successful = 0
+        failed = 0
+        
+        for idx in range(total):
+            url = None
+            candidate_name = "Unknown"
             
-            url = row[link_column]
-            candidate_name = row[name_column] if name_column and pd.notna(row.get(name_column)) else "Unknown"
-            
-            status_text.text(f"📥 Downloading CV {idx + 1}/{total}: {candidate_name}")
-            
-            # Download PDF
-            pdf_bytes = download_pdf_from_url(url)
-            
-            if not pdf_bytes:
-                results.append({
-                    'filename': url,
-                    'candidate_name': candidate_name,
-                    'status': 'error',
-                    'match_percentage': 0,
-                    'error_message': 'Gagal download PDF dari URL',
-                    'url': url
-                })
-                continue
-            
-            # Ekstrak teks
-            use_ocr = st.session_state.get('enable_ocr', False)
-            cv_text, ocr_used = extract_text_from_pdf(pdf_bytes, use_ocr)
-            
-            if not cv_text or len(cv_text.strip()) < 50:
-                results.append({
-                    'filename': url,
-                    'candidate_name': candidate_name,
-                    'status': 'error',
-                    'match_percentage': 0,
-                    'error_message': 'Tidak dapat mengekstrak teks dari PDF',
-                    'url': url,
-                    'ocr_used': ocr_used
-                })
-                continue
-            
-            # Generate hash
-            cv_hash = generate_cv_hash(cv_text, role)
-            
-            # Cek cache
-            cached_result = get_cached_analysis(cv_hash, cache)
-            
-            if cached_result:
-                result = cached_result.copy()
-                result['_from_cache'] = True
-            else:
-                # Analisa dengan AI
-                status_text.text(f"🤖 Analyzing CV {idx + 1}/{total}: {candidate_name}")
-                result = analyze_resume_with_agent(cv_text, role, requirements)
+            try:
+                row = df.iloc[idx]
                 
-                # Simpan ke cache
-                save_to_cache(cv_hash, result, cache)
-            
-            # Tambahkan metadata
-            result['filename'] = url
-            result['url'] = url
-            result['ocr_used'] = ocr_used
-            result['candidate_name'] = candidate_name if candidate_name != "Unknown" else result.get('candidate_name', 'Unknown')
-            result['processed_at'] = datetime.now().isoformat()
-            
-            results.append(result)
-            
-            # Delay untuk avoid rate limiting
-            time.sleep(0.5)
-            
-        except Exception as e:
-            logger.error(f"Error processing row {idx}: {e}")
-            results.append({
-                'filename': url,
-                'candidate_name': candidate_name,
-                'status': 'error',
-                'match_percentage': 0,
-                'error_message': str(e),
-                'url': url
-            })
-    
-    progress_bar.empty()
-    status_text.empty()
-    
-    return results
+                # Get URL and candidate name safely
+                url = str(row[link_column]) if pd.notna(row[link_column]) else None
+                
+                if not url or not url.startswith('http'):
+                    failed += 1
+                    results.append({
+                        'filename': url or 'N/A',
+                        'candidate_name': 'Unknown',
+                        'status': 'error',
+                        'match_percentage': 0,
+                        'error_message': 'Invalid URL format',
+                        'url': url or 'N/A'
+                    })
+                    continue
+                
+                candidate_name = str(row[name_column]) if name_column and pd.notna(row.get(name_column)) else "Unknown"
+                
+                # Update progress
+                progress_value = (idx + 1) / total
+                progress_bar.progress(progress_value)
+                
+                # Update status
+                status_text.text(f"📥 [{idx + 1}/{total}] Downloading: {candidate_name}")
+                
+                # Update metrics
+                with metrics_container:
+                    col1, col2, col3 = st.columns(3)
+                    col1.metric("Processed", processed)
+                    col2.metric("Success", successful)
+                    col3.metric("Failed", failed)
+                
+                # Download PDF with timeout and error handling
+                try:
+                    pdf_bytes = download_pdf_from_url(url, timeout=30)
+                except Exception as download_error:
+                    logger.error(f"Download error for {url}: {download_error}")
+                    pdf_bytes = None
+                
+                if not pdf_bytes:
+                    failed += 1
+                    results.append({
+                        'filename': url,
+                        'candidate_name': candidate_name,
+                        'status': 'error',
+                        'match_percentage': 0,
+                        'error_message': 'Gagal download PDF dari URL (timeout atau file tidak ditemukan)',
+                        'url': url
+                    })
+                    processed += 1
+                    continue
+                
+                # Ekstrak teks dengan error handling
+                status_text.text(f"📄 [{idx + 1}/{total}] Extracting text: {candidate_name}")
+                
+                try:
+                    use_ocr = st.session_state.get('enable_ocr', False)
+                    cv_text, ocr_used = extract_text_from_pdf(pdf_bytes, use_ocr)
+                except Exception as extract_error:
+                    logger.error(f"Text extraction error: {extract_error}")
+                    cv_text = ""
+                    ocr_used = False
+                
+                if not cv_text or len(cv_text.strip()) < 50:
+                    failed += 1
+                    results.append({
+                        'filename': url,
+                        'candidate_name': candidate_name,
+                        'status': 'error',
+                        'match_percentage': 0,
+                        'error_message': 'Tidak dapat mengekstrak teks dari PDF (mungkin PDF rusak atau terenkripsi)',
+                        'url': url,
+                        'ocr_used': ocr_used
+                    })
+                    processed += 1
+                    continue
+                
+                # Generate hash untuk caching
+                cv_hash = generate_cv_hash(cv_text, role)
+                
+                # Cek cache
+                cached_result = get_cached_analysis(cv_hash, cache)
+                
+                if cached_result:
+                    result = cached_result.copy()
+                    result['_from_cache'] = True
+                    status_text.text(f"💾 [{idx + 1}/{total}] Using cached result: {candidate_name}")
+                else:
+                    # Analisa dengan AI
+                    status_text.text(f"🤖 [{idx + 1}/{total}] Analyzing: {candidate_name}")
+                    
+                    try:
+                        result = analyze_resume_with_agent(cv_text, role, requirements)
+                        
+                        # Simpan ke cache
+                        save_to_cache(cv_hash, result, cache)
+                    except Exception as analysis_error:
+                        logger.error(f"Analysis error: {analysis_error}")
+                        failed += 1
+                        results.append({
+                            'filename': url,
+                            'candidate_name': candidate_name,
+                            'status': 'error',
+                            'match_percentage': 0,
+                            'error_message': f'Gagal analisa: {str(analysis_error)}',
+                            'url': url
+                        })
+                        processed += 1
+                        continue
+                
+                # Tambahkan metadata
+                result['filename'] = url
+                result['url'] = url
+                result['ocr_used'] = ocr_used
+                result['candidate_name'] = candidate_name if candidate_name != "Unknown" else result.get('candidate_name', 'Unknown')
+                result['processed_at'] = datetime.now().isoformat()
+                
+                results.append(result)
+                successful += 1
+                processed += 1
+                
+                # Small delay untuk avoid rate limiting
+                time.sleep(0.3)
+                
+            except KeyboardInterrupt:
+                st.warning("⚠️ Proses dibatalkan oleh user")
+                break
+                
+            except Exception as e:
+                logger.error(f"Error processing row {idx}: {e}")
+                failed += 1
+                processed += 1
+                
+                results.append({
+                    'filename': url or 'Unknown',
+                    'candidate_name': candidate_name,
+                    'status': 'error',
+                    'match_percentage': 0,
+                    'error_message': f'Error tidak terduga: {str(e)}',
+                    'url': url or 'Unknown'
+                })
+        
+        # Cleanup
+        progress_bar.empty()
+        status_text.empty()
+        metrics_container.empty()
+        
+        # Final summary
+        st.success(f"✅ Selesai! Processed: {processed}, Success: {successful}, Failed: {failed}")
+        
+        return results
+        
+    except Exception as e:
+        logger.error(f"Fatal error in process_excel_cv_links: {e}")
+        st.error(f"❌ Error fatal: {str(e)}")
+        return results
 
 
 # --- 9. TAMPILAN HASIL & UI COMPONENTS ---
@@ -1469,16 +1633,40 @@ def display_data_management():
     
     st.markdown("---")
     
-    # Clear all data
+    # Clear all data dengan proper confirmation
     st.markdown("### 🗑️ Hapus Semua Data")
     st.warning(get_text('confirm_clear_data'))
     
-    if st.button(get_text('clear_all_data'), type="secondary", use_container_width=True):
-        if clear_all_data():
-            st.success(get_text('all_data_cleared'))
-            st.rerun()
+    # Use session state untuk confirmation
+    if 'confirm_delete' not in st.session_state:
+        st.session_state.confirm_delete = False
+    
+    col_del1, col_del2 = st.columns(2)
+    
+    with col_del1:
+        if not st.session_state.confirm_delete:
+            if st.button("🗑️ Hapus Semua Data", use_container_width=True, type="secondary"):
+                st.session_state.confirm_delete = True
+                st.rerun()
         else:
-            st.error("❌ Gagal menghapus data")
+            if st.button("✅ YA, HAPUS SEMUA!", use_container_width=True, type="primary"):
+                with st.spinner("Menghapus data..."):
+                    if clear_all_data():
+                        st.session_state.confirm_delete = False
+                        st.success(get_text('all_data_cleared'))
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error("❌ Gagal menghapus data")
+    
+    with col_del2:
+        if st.session_state.confirm_delete:
+            if st.button("❌ BATAL", use_container_width=True, type="secondary"):
+                st.session_state.confirm_delete = False
+                st.rerun()
+    
+    if st.session_state.confirm_delete:
+        st.error("⚠️ **PERHATIAN**: Semua data akan dihapus permanen. Klik 'YA, HAPUS SEMUA!' untuk konfirmasi.")
 
 
 def display_chatbot_interface():
