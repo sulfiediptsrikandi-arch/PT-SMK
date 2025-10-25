@@ -728,86 +728,70 @@ def process_excel_cv_links(excel_file, role: str) -> List[Dict]:
     if df is None or df.empty:
         return []
     
-    # Reset index untuk memastikan sequential numbering
-    df = df.reset_index(drop=True)
     total_cvs = len(df)
-    
     progress_bar = st.progress(0)
     status_text = st.empty()
     
-    for idx in range(total_cvs):
-        try:
-            row = df.iloc[idx]
-            cv_link = row['cv_link']
-            candidate_name = row['candidate_name']
+    for idx, row in df.iterrows():
+        cv_link = row['cv_link']
+        candidate_name = row['candidate_name']
+        
+        progress = idx / total_cvs
+        progress_bar.progress(progress)
+        status_text.text(f"⏳ {get_text('downloading_cv')} {idx+1}/{total_cvs}: {candidate_name}")
+        
+        result = {
+            'filename': f"{candidate_name}.pdf",
+            'role': role,
+            'status': 'pending',
+            'selected': False,
+            'feedback': '',
+            'error': None,
+            'candidate_name': candidate_name,
+            'candidate_phone': 'N/A',
+            'match_percentage': 0,
+            'ocr_used': False,
+            'cv_link': cv_link
+        }
+        
+        if not is_valid_url(cv_link):
+            result['error'] = f"Invalid URL: {cv_link}"
+            result['status'] = 'error'
+            results.append(result)
+            st.warning(f"⚠️ {candidate_name}: Invalid URL")
+            continue
+        
+        cv_file = download_cv_from_url(cv_link, candidate_name)
+        
+        if cv_file is None:
+            # Check if it's a Google Drive link that might be private
+            if 'drive.google.com' in cv_link:
+                error_msg = "🔒 File Google Drive PRIVATE - Butuh akses"
+                result['error'] = f"Google Drive file is PRIVATE. Please set to public: {cv_link}"
+                st.error(f"❌ {candidate_name}: {error_msg}")
+                st.info("""
+                💡 **Cara Set File Google Drive ke Public:**
+                1. Buka Google Drive
+                2. Klik kanan file/folder → Share/Bagikan
+                3. Ubah ke: "Anyone with the link" / "Siapa saja yang memiliki link"
+                4. Permission: "Viewer" / "Dapat melihat"
+                5. Klik Done/Selesai
+                """)
+            else:
+                result['error'] = f"{get_text('download_error')}: {cv_link}"
+                st.warning(f"❌ {candidate_name}: {get_text('download_error')}")
             
-            progress = (idx + 1) / total_cvs
-            progress_bar.progress(progress)
-            status_text.text(f"⏳ {get_text('downloading_cv')} {idx+1}/{total_cvs}: {candidate_name}")
-            
-            result = {
-                'filename': f"{candidate_name}.pdf",
-                'role': role,
-                'status': 'pending',
-                'selected': False,
-                'feedback': '',
-                'error': None,
-                'candidate_name': candidate_name,
-                'candidate_phone': 'N/A',
-                'match_percentage': 0,
-                'ocr_used': False,
-                'cv_link': cv_link
-            }
-            
-            if not is_valid_url(cv_link):
-                result['error'] = f"Invalid URL: {cv_link}"
-                result['status'] = 'error'
-                results.append(result)
-                st.warning(f"⚠️ {candidate_name}: Invalid URL")
-                continue
-            
-            cv_file = download_cv_from_url(cv_link, candidate_name)
-            
-            if cv_file is None:
-                # Check if it's a Google Drive link that might be private
-                if 'drive.google.com' in cv_link:
-                    error_msg = "🔒 File Google Drive PRIVATE - Butuh akses"
-                    result['error'] = f"Google Drive file is PRIVATE. Please set to public: {cv_link}"
-                    st.error(f"❌ {candidate_name}: {error_msg}")
-                    st.info("""
-                    💡 **Cara Set File Google Drive ke Public:**
-                    1. Buka Google Drive
-                    2. Klik kanan file/folder → Share/Bagikan
-                    3. Ubah ke: "Anyone with the link" / "Siapa saja yang memiliki link"
-                    4. Permission: "Viewer" / "Dapat melihat"
-                    5. Klik Done/Selesai
-                    """)
-                else:
-                    result['error'] = f"{get_text('download_error')}: {cv_link}"
-                    st.warning(f"❌ {candidate_name}: {get_text('download_error')}")
-                
-                result['status'] = 'error'
-                results.append(result)
-                continue
-            
-            st.info(f"✅ {candidate_name}: {get_text('cv_downloaded')}")
-            
-            # Process the downloaded CV
-            processed_result = process_single_candidate(cv_file, role)
-            processed_result['cv_link'] = cv_link
-            processed_result['candidate_name'] = candidate_name  # Override with Excel name
-            results.append(processed_result)
-            
-        except Exception as e:
-            logger.error(f"Error processing row {idx}: {e}")
-            results.append({
-                'filename': f"error_{idx}.pdf",
-                'role': role,
-                'status': 'error',
-                'error': str(e),
-                'candidate_name': 'Error',
-                'match_percentage': 0
-            })
+            result['status'] = 'error'
+            results.append(result)
+            continue
+        
+        st.info(f"✅ {candidate_name}: {get_text('cv_downloaded')}")
+        
+        # Process the downloaded CV
+        processed_result = process_single_candidate(cv_file, role)
+        processed_result['cv_link'] = cv_link
+        processed_result['candidate_name'] = candidate_name  # Override with Excel name
+        results.append(processed_result)
     
     progress_bar.progress(1.0)
     status_text.text(f"✅ {get_text('processing_complete')}")
@@ -1214,29 +1198,18 @@ def display_data_management():
     with col3:
         st.markdown("### 🍂 Hapus Semua Data")
         st.write("⚠️ Hapus SEMUA data aplikasi (tidak dapat dibatalkan!)")
-        
-        # Initialize session state for confirmation
-        if 'confirm_delete_stage' not in st.session_state:
-            st.session_state.confirm_delete_stage = 0
-        
-        if st.session_state.confirm_delete_stage == 0:
-            if st.button(get_text('clear_all_data'), type="secondary", use_container_width=True):
-                st.session_state.confirm_delete_stage = 1
-                st.rerun()
-        elif st.session_state.confirm_delete_stage == 1:
-            st.warning(get_text('confirm_clear_data'))
-            col_a, col_b = st.columns(2)
-            with col_a:
-                if st.button("✅ Ya, Hapus!", type="primary", use_container_width=True):
-                    if clear_all_persistent_data():
-                        st.success(get_text('all_data_cleared'))
-                        st.session_state.confirm_delete_stage = 0
-                        time.sleep(1)
-                        st.rerun()
-            with col_b:
-                if st.button("❌ Batal", use_container_width=True):
-                    st.session_state.confirm_delete_stage = 0
-                    st.rerun()
+        if st.button(get_text('clear_all_data'), type="secondary", use_container_width=True):
+            with st.form("confirm_delete_form"):
+                st.warning(get_text('confirm_clear_data'))
+                confirm = st.checkbox("Ya, saya yakin ingin menghapus semua data")
+                if st.form_submit_button("🗑️ Konfirmasi Hapus", type="primary"):
+                    if confirm:
+                        if clear_all_persistent_data():
+                            st.success(get_text('all_data_cleared'))
+                            time.sleep(1)
+                            st.rerun()
+                    else:
+                        st.error("Silakan centang checkbox untuk konfirmasi")
 
 
 # --- 12. RESULTS TABLE DISPLAY ---
