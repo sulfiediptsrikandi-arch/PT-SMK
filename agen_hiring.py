@@ -346,6 +346,7 @@ def calculate_skills_match_percentage(resume_text: str, required_skills: List[st
     """
     Calculate skill match percentage based on actual skills from requirements.
     Returns: (percentage, matching_skills, missing_skills)
+    IMPROVED: More strict matching logic to avoid ambiguity.
     """
     if not required_skills:
         return 0, [], []
@@ -356,15 +357,43 @@ def calculate_skills_match_percentage(resume_text: str, required_skills: List[st
     missing_skills = []
     
     for skill in required_skills:
-        skill_lower = skill.lower()
-        # Check for exact match or partial match (for multi-word skills)
-        if skill_lower in resume_lower or any(word in resume_lower for word in skill_lower.split() if len(word) > 3):
+        skill_lower = skill.lower().strip()
+        
+        # Skip very short skills (likely noise)
+        if len(skill_lower) < 3:
+            continue
+        
+        is_matched = False
+        
+        # Method 1: Exact phrase match (most reliable)
+        if skill_lower in resume_lower:
+            is_matched = True
+        else:
+            # Method 2: Check if majority of significant words in skill are present
+            skill_words = [w.strip() for w in skill_lower.split() if len(w.strip()) > 3]
+            
+            if skill_words:
+                # Count how many significant words are found
+                words_found = sum(1 for word in skill_words if word in resume_lower)
+                
+                # Require at least 70% of significant words to be present
+                match_ratio = words_found / len(skill_words)
+                
+                # For skills with only 1-2 significant words, require exact match
+                # For skills with 3+ words, allow 70% match
+                if len(skill_words) <= 2:
+                    is_matched = (match_ratio >= 1.0)  # All words must match
+                else:
+                    is_matched = (match_ratio >= 0.7)  # At least 70% words match
+        
+        # Add to appropriate list (STRICT: no overlap allowed)
+        if is_matched:
             matching_skills.append(skill)
         else:
             missing_skills.append(skill)
     
     # Calculate percentage
-    total_skills = len(required_skills)
+    total_skills = len(matching_skills) + len(missing_skills)
     matched_count = len(matching_skills)
     percentage = int((matched_count / total_skills) * 100) if total_skills > 0 else 0
     
@@ -706,6 +735,14 @@ OUTPUT REQUIREMENTS:
 - Be professional, specific, and data-driven
 - List SPECIFIC skills that match and are missing
 
+CRITICAL: SKILLS CLASSIFICATION RULES
+- A skill can ONLY be in matching_skills OR missing_skills, NEVER in both
+- If a skill is found in the resume, it goes to matching_skills
+- If a skill is NOT found in the resume, it goes to missing_skills
+- No overlap is allowed between the two lists
+- Use the provided lists {matching_skills_list} and {missing_skills_list} as reference
+- Only adjust if you find clear evidence in the resume that changes the classification
+
 Required JSON structure:
 {{
     "candidate_name": "Full Name from Resume or 'N/A'",
@@ -759,6 +796,19 @@ Analyze now and return ONLY the JSON:"""
                 result["matching_skills"] = matching_skills_list
             if "missing_skills" not in result or not result["missing_skills"]:
                 result["missing_skills"] = missing_skills_list
+            
+            # CRITICAL: Remove any overlap between matching and missing skills
+            # A skill cannot be both matching AND missing at the same time
+            matching_set = set([s.lower().strip() for s in result["matching_skills"]])
+            missing_set = set([s.lower().strip() for s in result["missing_skills"]])
+            
+            # Find and remove overlaps
+            overlap = matching_set.intersection(missing_set)
+            if overlap:
+                logger.warning(f"Found skill overlap, removing from missing_skills: {overlap}")
+                # Keep in matching_skills, remove from missing_skills
+                result["missing_skills"] = [s for s in result["missing_skills"] 
+                                           if s.lower().strip() not in overlap]
             
             # Determine selection based on match percentage
             if result["match_percentage"] >= 70:
