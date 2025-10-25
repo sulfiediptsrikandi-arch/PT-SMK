@@ -17,6 +17,16 @@ from phi.model.openai import OpenAIChat
 from phi.utils.log import logger
 
 # Impor library tambahan untuk OCR
+# OCR Installation Guide:
+# 1. Install Python packages: pip install pdf2image pytesseract pillow
+# 2. Install Tesseract OCR:
+#    - Ubuntu/Debian: sudo apt-get install tesseract-ocr tesseract-ocr-ind
+#    - MacOS: brew install tesseract tesseract-lang
+#    - Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki
+# 3. Install poppler for PDF to image conversion:
+#    - Ubuntu/Debian: sudo apt-get install poppler-utils
+#    - MacOS: brew install poppler
+#    - Windows: Download from https://github.com/oschwartz10612/poppler-windows/releases
 try:
     from pdf2image import convert_from_bytes
     import pytesseract
@@ -25,6 +35,7 @@ try:
 except ImportError:
     OCR_AVAILABLE = False
     logger.warning("OCR libraries not found. Install: pip install pdf2image pytesseract pillow")
+    logger.warning("Also install: tesseract-ocr, tesseract-ocr-ind (Indonesian), and poppler-utils")
 
 # Impor Pandas untuk menampilkan data dalam bentuk tabel
 try:
@@ -580,40 +591,124 @@ def save_to_memory(result: dict):
 
 # --- 4. FUNGSI EKSTRAKSI PDF & OCR ---
 def extract_text_from_pdf(pdf_file) -> str:
-    """Extract text from PDF file."""
+    """Extract text from PDF file with improved text extraction."""
     try:
         pdf_file.seek(0)
         reader = PyPDF2.PdfReader(pdf_file)
         text = ""
-        for page in reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text + "\n"
-        return text.strip()
+        
+        for page_num, page in enumerate(reader.pages):
+            try:
+                page_text = page.extract_text()
+                if page_text:
+                    # Clean up extracted text
+                    page_text = page_text.strip()
+                    text += page_text + "\n\n"
+            except Exception as e:
+                logger.warning(f"Error extracting page {page_num + 1}: {e}")
+                continue
+        
+        # Clean up the final text
+        text = text.strip()
+        
+        # Remove excessive whitespace and normalize
+        text = re.sub(r'\n{3,}', '\n\n', text)  # Max 2 consecutive newlines
+        text = re.sub(r' {2,}', ' ', text)  # Max 1 space
+        
+        return text
     except Exception as e:
         logger.error(f"PDF extraction error: {e}")
         return ""
 
 def extract_text_with_ocr(pdf_file) -> Tuple[str, bool]:
-    """Extract text from PDF with OCR fallback for image-based PDFs."""
+    """
+    Extract text from PDF with OCR fallback for image-based PDFs.
+    IMPROVED: Better threshold detection, image preprocessing, and bilingual OCR support.
+    """
     # First try normal extraction
     text = extract_text_from_pdf(pdf_file)
     
-    # If text is too short, it might be an image-based PDF
-    if len(text.strip()) < 100 and OCR_AVAILABLE:
+    # Calculate text quality metrics
+    text_length = len(text.strip())
+    
+    # Check if text extraction quality is poor
+    # Poor quality indicators:
+    # 1. Very short text (< 200 chars for a resume is suspicious)
+    # 2. Too many special characters (indication of garbled text)
+    # 3. Very few alphabetic characters
+    alphanumeric_ratio = sum(c.isalnum() for c in text) / max(len(text), 1)
+    
+    should_use_ocr = False
+    
+    # Determine if OCR is needed
+    if OCR_AVAILABLE:
+        if text_length < 200:
+            # Very short text, definitely use OCR
+            should_use_ocr = True
+            logger.info(f"Text too short ({text_length} chars), triggering OCR")
+        elif alphanumeric_ratio < 0.5 and text_length < 500:
+            # Low quality text with many non-alphanumeric chars
+            should_use_ocr = True
+            logger.info(f"Low text quality (ratio: {alphanumeric_ratio:.2f}), triggering OCR")
+    
+    if should_use_ocr:
         try:
             pdf_file.seek(0)
-            images = convert_from_bytes(pdf_file.read())
+            pdf_bytes = pdf_file.read()
+            
+            # Convert PDF pages to images
+            logger.info("Converting PDF to images for OCR...")
+            images = convert_from_bytes(pdf_bytes, dpi=300)  # Higher DPI for better OCR
             
             ocr_text = ""
-            for img in images:
-                ocr_text += pytesseract.image_to_string(img) + "\n"
             
+            for idx, img in enumerate(images):
+                logger.info(f"OCR processing page {idx + 1}/{len(images)}...")
+                
+                # Image preprocessing for better OCR
+                # Convert to grayscale
+                img_gray = img.convert('L')
+                
+                # Optional: Enhance contrast (uncomment if needed)
+                # from PIL import ImageEnhance
+                # enhancer = ImageEnhance.Contrast(img_gray)
+                # img_gray = enhancer.enhance(2.0)
+                
+                # Perform OCR with Indonesian + English support
+                try:
+                    # Try with Indonesian language first
+                    page_text = pytesseract.image_to_string(
+                        img_gray, 
+                        lang='ind+eng',  # Indonesian + English
+                        config='--psm 6'  # Assume uniform block of text
+                    )
+                except Exception as lang_error:
+                    # Fallback to English only if Indonesian is not available
+                    logger.warning(f"Indonesian OCR failed, using English only: {lang_error}")
+                    page_text = pytesseract.image_to_string(
+                        img_gray,
+                        config='--psm 6'
+                    )
+                
+                if page_text.strip():
+                    ocr_text += page_text.strip() + "\n\n"
+            
+            ocr_text = ocr_text.strip()
+            
+            # Clean up OCR text
+            ocr_text = re.sub(r'\n{3,}', '\n\n', ocr_text)
+            ocr_text = re.sub(r' {2,}', ' ', ocr_text)
+            
+            # Use OCR result if it's significantly better
             if len(ocr_text.strip()) > len(text.strip()):
-                logger.info("OCR produced better results")
-                return ocr_text.strip(), True
+                logger.info(f"OCR produced better results: {len(ocr_text)} chars vs {len(text)} chars")
+                return ocr_text, True
+            else:
+                logger.info(f"Original extraction was better: {len(text)} chars vs {len(ocr_text)} chars")
+        
         except Exception as e:
             logger.error(f"OCR error: {e}")
+            logger.error(f"OCR error details: {str(e)}")
     
     return text, False
 
@@ -1109,19 +1204,29 @@ def process_single_candidate(resume_file, role: str) -> dict:
         'candidate_phone': 'N/A',
         'match_percentage': 0,
         'ocr_used': False,
+        'text_length': 0,  # Track extracted text length for debugging
+        'extraction_method': 'normal',  # Track extraction method
     }
     
     try:
         if st.session_state.get('enable_ocr', False):
             text, ocr_used = extract_text_with_ocr(resume_file)
             result['ocr_used'] = ocr_used
+            result['extraction_method'] = 'ocr' if ocr_used else 'normal'
         else:
             text = extract_text_from_pdf(resume_file)
             result['ocr_used'] = False
+            result['extraction_method'] = 'normal'
+        
+        result['text_length'] = len(text.strip())
+        
+        # Log extraction quality
+        logger.info(f"Extracted {result['text_length']} chars from {resume_file.name} using {result['extraction_method']}")
         
         if not text or len(text.strip()) < 50:
-            result['error'] = get_text('error_pdf_text')
+            result['error'] = get_text('error_pdf_text') + f" (Only {len(text.strip())} chars extracted)"
             result['status'] = 'error'
+            logger.warning(f"Insufficient text extracted from {resume_file.name}")
             return result
         
         analyzer = create_resume_analyzer()
@@ -1637,8 +1742,17 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
                 st.progress(match_pct / 100)
                 st.markdown(f"**Match:** {match_pct}%")
                 
+                # Display extraction method info
                 if result.get('ocr_used', False):
                     st.info("🔍 OCR digunakan / OCR used")
+                
+                # Display text extraction quality
+                text_length = result.get('text_length', 0)
+                if text_length > 0:
+                    extraction_method = result.get('extraction_method', 'normal')
+                    st.caption(f"📄 Ekstraksi: {text_length} chars ({extraction_method})")
+                elif status == 'error' and 'text' in str(result.get('error', '')).lower():
+                    st.warning("⚠️ Ekstraksi teks gagal / Text extraction failed")
             
             with col2:
                 st.markdown(f"**Status:** <span style='color: {status_color}; font-weight: bold;'>{status.upper()}</span>", unsafe_allow_html=True)
