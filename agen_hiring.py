@@ -619,20 +619,53 @@ def extract_text_with_ocr(pdf_file) -> Tuple[str, bool]:
                 logger.error("PDF file is empty for OCR")
                 return text, False
             
+            # PERBAIKAN CRITICAL: Batasi ukuran file untuk OCR (max 5 MB)
+            file_size_mb = len(pdf_bytes) / 1_000_000
+            MAX_OCR_FILE_SIZE = 5_000_000  # 5 MB
+            
+            if len(pdf_bytes) > MAX_OCR_FILE_SIZE:
+                logger.warning(f"PDF too large for OCR: {file_size_mb:.1f} MB > 5 MB")
+                st.warning(f"⚠️ PDF terlalu besar ({file_size_mb:.1f} MB) untuk OCR. Menggunakan ekstraksi normal.")
+                # Reset pointer dan return hasil ekstraksi normal
+                try:
+                    pdf_file.seek(0)
+                except:
+                    pass
+                return text, False
+            
             # PERBAIKAN: Reset pointer setelah read
             pdf_file.seek(0)
             
             logger.info(f"Converting PDF to images for OCR ({len(pdf_bytes)} bytes)...")
             images = convert_from_bytes(pdf_bytes)
             
+            # PERBAIKAN CRITICAL: Batasi halaman OCR (max 10 halaman)
+            MAX_OCR_PAGES = 10
+            original_page_count = len(images)
+            
+            if len(images) > MAX_OCR_PAGES:
+                logger.warning(f"PDF has {len(images)} pages, limiting to {MAX_OCR_PAGES} pages for OCR")
+                st.warning(f"⚠️ PDF memiliki {len(images)} halaman. Hanya {MAX_OCR_PAGES} halaman pertama yang akan di-OCR untuk menghindari timeout.")
+                images = images[:MAX_OCR_PAGES]
+            
             ocr_text = ""
             for idx, img in enumerate(images):
                 logger.info(f"OCR processing page {idx+1}/{len(images)}...")
+                
+                # PERBAIKAN: Progress heartbeat setiap 3 halaman untuk avoid timeout
+                if idx > 0 and idx % 3 == 0:
+                    try:
+                        st.empty()  # Trigger Streamlit refresh untuk health check
+                    except:
+                        pass
+                
                 page_text = pytesseract.image_to_string(img)
                 ocr_text += page_text + "\n"
             
             if len(ocr_text.strip()) > len(text.strip()):
                 logger.info(f"OCR produced better results: {len(ocr_text)} chars vs {len(text)} chars")
+                if original_page_count > MAX_OCR_PAGES:
+                    logger.info(f"Note: Only first {MAX_OCR_PAGES} of {original_page_count} pages were OCR'd")
                 return ocr_text.strip(), True
             else:
                 logger.info(f"Normal extraction better: {len(text)} chars vs {len(ocr_text)} chars")
@@ -1107,9 +1140,15 @@ def process_excel_cv_links(excel_file, role: str, max_cvs: int = 50) -> List[Dic
                 results.append(processed_result)
                 processed_count += 1
                 
-                # IMPROVEMENT: Save progress after each successful processing
-                st.session_state.batch_results = results
-                save_results_to_disk()
+                # PERBAIKAN: Save progress setiap 3 CV (bukan setiap CV) untuk reduce I/O overhead
+                if processed_count % 3 == 0 or processed_count == total_cvs:
+                    st.session_state.batch_results = results
+                    save_results_to_disk()
+                    logger.info(f"Progress saved: {processed_count}/{total_cvs} CVs processed")
+                
+                # PERBAIKAN: Rate limiting - delay 1 detik antar CV untuk avoid OpenAI rate limit & reduce load
+                if idx < total_cvs - 1:  # Tidak perlu delay di CV terakhir
+                    time.sleep(1)
                 
             except Exception as e:
                 logger.error(f"Error processing {candidate_name}: {e}")
@@ -1121,6 +1160,11 @@ def process_excel_cv_links(excel_file, role: str, max_cvs: int = 50) -> List[Dic
                 
                 # IMPROVEMENT: Continue processing next CV
                 continue
+        
+        # PERBAIKAN: Final save setelah semua CV selesai diproses
+        st.session_state.batch_results = results
+        save_results_to_disk()
+        logger.info(f"Final save complete: {len(results)} total CVs processed")
         
         if progress_bar is not None:
             progress_bar.progress(1.0)
@@ -2401,9 +2445,8 @@ def main():
                                 st.toast(summary, icon="✅")
                                 st.info(f"👉 {get_text('tab_results')} atau {get_text('tab_chatbot')}")
                                 
-                                # PERBAIKAN: Rerun untuk memastikan hasil ditampilkan
-                                time.sleep(1)  # Brief pause agar toast terlihat
-                                st.rerun()
+                                # PERBAIKAN: HAPUS st.rerun() untuk menghindari timeout dan crash
+                                # User dapat manual pindah ke tab "Hasil & Ringkasan" untuk melihat hasil
                             else:
                                 st.error(get_text('no_valid_links'))
                     else:
