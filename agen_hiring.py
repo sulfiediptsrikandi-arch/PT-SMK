@@ -192,6 +192,38 @@ def get_text(key: str) -> str:
     return TEXTS.get(key, {}).get(lang, key)
 
 
+# --- AUTO-LOAD CREDENTIALS FROM SECRETS ---
+def load_credentials_from_secrets():
+    """Load API keys and credentials from Streamlit secrets if available"""
+    try:
+        # Load OpenAI API Key
+        if 'OPENAI_API_KEY' in st.secrets:
+            if 'openai_api_key' not in st.session_state or not st.session_state.get('openai_api_key'):
+                st.session_state['openai_api_key'] = st.secrets['OPENAI_API_KEY']
+        
+        # Load Supabase credentials
+        if 'SUPABASE_URL' in st.secrets:
+            if 'supabase_url' not in st.session_state or not st.session_state.get('supabase_url'):
+                st.session_state['supabase_url'] = st.secrets['SUPABASE_URL']
+        
+        if 'SUPABASE_KEY' in st.secrets:
+            if 'supabase_key' not in st.session_state or not st.session_state.get('supabase_key'):
+                st.session_state['supabase_key'] = st.secrets['SUPABASE_KEY']
+        
+        # Load optional settings
+        if 'settings' in st.secrets:
+            settings = st.secrets['settings']
+            if 'default_language' in settings and 'language' not in st.session_state:
+                st.session_state['language'] = settings['default_language']
+            if 'enable_ocr' in settings and 'enable_ocr' not in st.session_state:
+                st.session_state['enable_ocr'] = settings['enable_ocr']
+    
+    except Exception as e:
+        # Silently fail if secrets not available - user can input manually
+        logger.debug(f"Secrets not available or error loading: {e}")
+        pass
+
+
 # --- 2. SUPABASE DATABASE FUNCTIONS ---
 
 def load_roles() -> Dict[str, str]:
@@ -1876,6 +1908,9 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
 # --- 13. MAIN APPLICATION ---
 def main():
     """Main application with nature theme."""
+    # Load credentials from secrets if available
+    load_credentials_from_secrets()
+    
     # Page config
     st.set_page_config(
         page_title="PT Srikandi Mitra Karya - Recruitment AI",
@@ -2321,12 +2356,19 @@ def main():
         
         # OpenAI Settings
         with st.expander(get_text('openai_settings'), expanded=True):
+            # Check if auto-loaded from secrets
+            is_auto_loaded = 'OPENAI_API_KEY' in st.secrets if hasattr(st, 'secrets') else False
+            
+            if is_auto_loaded:
+                st.success("✅ API Key terkonfigurasi otomatis / API Key auto-configured")
+            
             api_key = st.text_input(
                 get_text('api_key_label'),
                 type="password",
                 value=st.session_state.get('openai_api_key', ''),
                 help=get_text('api_key_help'),
-                key='openai_api_key_input'
+                key='openai_api_key_input',
+                placeholder="sk-..." if not is_auto_loaded else "••••••••••••••••"
             )
             st.session_state['openai_api_key'] = api_key
         
@@ -2341,12 +2383,20 @@ def main():
         
         # Supabase Settings
         with st.expander(get_text('supabase_settings'), expanded=True):
+            # Check if auto-loaded from secrets
+            supabase_auto_loaded = (
+                'SUPABASE_URL' in st.secrets and 'SUPABASE_KEY' in st.secrets
+            ) if hasattr(st, 'secrets') else False
+            
+            if supabase_auto_loaded:
+                st.success("✅ Supabase terkonfigurasi otomatis / Supabase auto-configured")
+            
             supabase_url = st.text_input(
                 get_text('supabase_url_label'),
                 value=st.session_state.get('supabase_url', ''),
                 help=get_text('supabase_url_help'),
                 key='supabase_url_input',
-                placeholder='https://xyzcompany.supabase.co'
+                placeholder='https://xyzcompany.supabase.co' if not supabase_auto_loaded else "••••••••••••••••"
             )
             st.session_state['supabase_url'] = supabase_url
             
@@ -2355,7 +2405,8 @@ def main():
                 type="password",
                 value=st.session_state.get('supabase_key', ''),
                 help=get_text('supabase_key_help'),
-                key='supabase_key_input'
+                key='supabase_key_input',
+                placeholder='eyJhbGciOiJIUzI1NiIsInR5cCI6...' if not supabase_auto_loaded else "••••••••••••••••"
             )
             st.session_state['supabase_key'] = supabase_key
             
@@ -2365,7 +2416,7 @@ def main():
                 st.success(get_text('supabase_connected'))
             else:
                 st.warning(get_text('supabase_not_configured'))
-    
+
     # Main content
     st.title(get_text('app_title'))
     
