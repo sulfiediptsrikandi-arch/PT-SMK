@@ -13,7 +13,7 @@ from pathlib import Path
 # KRITIS: Streamlit harus diimpor di global scope
 import streamlit as st 
 from phi.agent import Agent
-from phi.model.openai import OpenAIChat
+from phi.model.google import Gemini
 from phi.utils.log import logger
 
 # Import Supabase
@@ -74,9 +74,9 @@ TEXTS = {
     # Sidebar & Konfigurasi - TEMA NATURE
     'app_title': {'id': "PT Srikandi Mitra Karya - Sistem Rekrutmen AI", 'en': "PT Srikandi Mitra Karya - AI Recruitment System"},
     'config_header': {'id': "🌿 Konfigurasi", 'en': "🌿 Configuration"},
-    'openai_settings': {'id': "Pengaturan OpenAI", 'en': "OpenAI Settings"},
-    'api_key_label': {'id': "Kunci API OpenAI", 'en': "OpenAI API Key"},
-    'api_key_help': {'id': "Dapatkan kunci API Anda dari platform.openai.com", 'en': "Get your API key from platform.openai.com"},
+    'gemini_settings': {'id': "Pengaturan Google Gemini", 'en': "Google Gemini Settings"},
+    'api_key_label': {'id': "Kunci API Google Gemini", 'en': "Google Gemini API Key"},
+    'api_key_help': {'id': "Dapatkan kunci API Anda dari aistudio.google.com/apikey", 'en': "Get your API key from aistudio.google.com/apikey"},
     'warning_missing_config': {'id': "⚠️ Harap konfigurasikan hal berikut di sidebar: ", 'en': "⚠️ Please configure the following in the sidebar: "},
     'language_select': {'id': "Pilih Bahasa", 'en': "Select Language"},
     'reset_button': {'id': "🔄 Reset Aplikasi", 'en': "🔄 Reset Application"},
@@ -190,6 +190,71 @@ def get_text(key: str) -> str:
     """Get text in current language."""
     lang = st.session_state.get('language', 'id')
     return TEXTS.get(key, {}).get(lang, key)
+
+
+# --- AUTO-LOAD CREDENTIALS FROM SECRETS ---
+def load_credentials_from_secrets():
+    """Load API keys and credentials from Streamlit secrets if available"""
+    try:
+        # Check if secrets are available
+        if not hasattr(st, 'secrets'):
+            logger.debug("st.secrets not available")
+            return
+        
+        # Try to access secrets - this will fail if secrets.toml doesn't exist
+        try:
+            secrets_keys = list(st.secrets.keys())
+        except:
+            logger.debug("No secrets.toml file found or secrets are empty")
+            return
+        
+        # Load OpenAI API Key
+        try:
+            if 'OPENAI_API_KEY' in st.secrets:
+                api_key = str(st.secrets['OPENAI_API_KEY']).strip()
+                if api_key and api_key != "":
+                    if 'openai_api_key' not in st.session_state or not st.session_state.get('openai_api_key'):
+                        st.session_state['openai_api_key'] = api_key
+                        logger.info("OpenAI API Key loaded from secrets")
+        except Exception as e:
+            logger.debug(f"Could not load OPENAI_API_KEY: {e}")
+        
+        # Load Supabase credentials
+        try:
+            if 'SUPABASE_URL' in st.secrets:
+                url = str(st.secrets['SUPABASE_URL']).strip()
+                if url and url != "":
+                    if 'supabase_url' not in st.session_state or not st.session_state.get('supabase_url'):
+                        st.session_state['supabase_url'] = url
+                        logger.info("Supabase URL loaded from secrets")
+        except Exception as e:
+            logger.debug(f"Could not load SUPABASE_URL: {e}")
+        
+        try:
+            if 'SUPABASE_KEY' in st.secrets:
+                key = str(st.secrets['SUPABASE_KEY']).strip()
+                if key and key != "":
+                    if 'supabase_key' not in st.session_state or not st.session_state.get('supabase_key'):
+                        st.session_state['supabase_key'] = key
+                        logger.info("Supabase Key loaded from secrets")
+        except Exception as e:
+            logger.debug(f"Could not load SUPABASE_KEY: {e}")
+        
+        # Load optional settings
+        try:
+            if 'settings' in st.secrets:
+                settings = st.secrets['settings']
+                if 'default_language' in settings and 'language' not in st.session_state:
+                    st.session_state['language'] = str(settings['default_language'])
+                if 'enable_ocr' in settings and 'enable_ocr' not in st.session_state:
+                    st.session_state['enable_ocr'] = bool(settings['enable_ocr'])
+        except Exception as e:
+            logger.debug(f"Could not load settings: {e}")
+    
+    except Exception as e:
+        # Silently fail if secrets not available - user can input manually
+        logger.debug(f"Error loading secrets: {e}")
+        pass
 
 
 # --- 2. SUPABASE DATABASE FUNCTIONS ---
@@ -1876,6 +1941,9 @@ def display_results_table(results: List[Dict], lang: str = 'id'):
 # --- 13. MAIN APPLICATION ---
 def main():
     """Main application with nature theme."""
+    # Load credentials from secrets if available
+    load_credentials_from_secrets()
+    
     # Page config
     st.set_page_config(
         page_title="PT Srikandi Mitra Karya - Recruitment AI",
@@ -2321,12 +2389,33 @@ def main():
         
         # OpenAI Settings
         with st.expander(get_text('openai_settings'), expanded=True):
+            # Check if auto-loaded from secrets (check both st.secrets and session_state)
+            is_auto_loaded = False
+            try:
+                if hasattr(st, 'secrets') and 'OPENAI_API_KEY' in st.secrets:
+                    secret_key = str(st.secrets['OPENAI_API_KEY']).strip()
+                    # Verify it's not a placeholder
+                    if secret_key and not secret_key.startswith('sk-your') and secret_key != 'sk-...':
+                        is_auto_loaded = True
+            except:
+                pass
+            
+            # Also check if already loaded in session_state
+            if not is_auto_loaded and st.session_state.get('openai_api_key'):
+                session_key = str(st.session_state.get('openai_api_key', '')).strip()
+                if session_key and not session_key.startswith('sk-your') and session_key != 'sk-...':
+                    is_auto_loaded = True
+            
+            if is_auto_loaded:
+                st.success("✅ API Key terkonfigurasi otomatis / API Key auto-configured")
+            
             api_key = st.text_input(
                 get_text('api_key_label'),
                 type="password",
                 value=st.session_state.get('openai_api_key', ''),
                 help=get_text('api_key_help'),
-                key='openai_api_key_input'
+                key='openai_api_key_input',
+                placeholder="sk-..." if not is_auto_loaded else "••••••••••••••••"
             )
             st.session_state['openai_api_key'] = api_key
         
@@ -2341,12 +2430,38 @@ def main():
         
         # Supabase Settings
         with st.expander(get_text('supabase_settings'), expanded=True):
+            # Check if auto-loaded from secrets (check both st.secrets and session_state)
+            supabase_auto_loaded = False
+            try:
+                if hasattr(st, 'secrets') and 'SUPABASE_URL' in st.secrets and 'SUPABASE_KEY' in st.secrets:
+                    secret_url = str(st.secrets['SUPABASE_URL']).strip()
+                    secret_key = str(st.secrets['SUPABASE_KEY']).strip()
+                    # Verify they're not placeholders
+                    if (secret_url and secret_key and 
+                        not secret_url.startswith('https://your-') and 
+                        not secret_key.startswith('your-')):
+                        supabase_auto_loaded = True
+            except:
+                pass
+            
+            # Also check if already loaded in session_state
+            if not supabase_auto_loaded:
+                session_url = str(st.session_state.get('supabase_url', '')).strip()
+                session_key = str(st.session_state.get('supabase_key', '')).strip()
+                if (session_url and session_key and 
+                    not session_url.startswith('https://your-') and 
+                    not session_key.startswith('your-')):
+                    supabase_auto_loaded = True
+            
+            if supabase_auto_loaded:
+                st.success("✅ Supabase terkonfigurasi otomatis / Supabase auto-configured")
+            
             supabase_url = st.text_input(
                 get_text('supabase_url_label'),
                 value=st.session_state.get('supabase_url', ''),
                 help=get_text('supabase_url_help'),
                 key='supabase_url_input',
-                placeholder='https://xyzcompany.supabase.co'
+                placeholder='https://xyzcompany.supabase.co' if not supabase_auto_loaded else "••••••••••••••••"
             )
             st.session_state['supabase_url'] = supabase_url
             
@@ -2355,7 +2470,8 @@ def main():
                 type="password",
                 value=st.session_state.get('supabase_key', ''),
                 help=get_text('supabase_key_help'),
-                key='supabase_key_input'
+                key='supabase_key_input',
+                placeholder='eyJhbGciOiJIUzI1NiIsInR5cCI6...' if not supabase_auto_loaded else "••••••••••••••••"
             )
             st.session_state['supabase_key'] = supabase_key
             
@@ -2365,7 +2481,7 @@ def main():
                 st.success(get_text('supabase_connected'))
             else:
                 st.warning(get_text('supabase_not_configured'))
-    
+
     # Main content
     st.title(get_text('app_title'))
     
