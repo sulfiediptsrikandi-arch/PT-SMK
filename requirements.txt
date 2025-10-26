@@ -6,6 +6,7 @@ PyPDF2>=3.0.1
 pandas>=2.2.0
 openpyxl>=3.1.2
 requests>=2.31.0
+google-genai
 
 # OCR Support for Scanned PDFs
 pdf2image>=1.16.0
