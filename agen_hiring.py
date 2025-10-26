@@ -16,6 +16,14 @@ from phi.agent import Agent
 from phi.model.openai import OpenAIChat
 from phi.utils.log import logger
 
+# Import Supabase
+try:
+    from supabase import create_client, Client
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    SUPABASE_AVAILABLE = False
+    logger.warning("Supabase library not found. Install: pip install supabase")
+
 # Impor library tambahan untuk OCR
 try:
     from pdf2image import convert_from_bytes
@@ -42,15 +50,23 @@ except ImportError:
     logger.warning("Pandas library not found. Table display and Excel download will be degraded.")
 
 
-# --- KONSTANTA UNTUK PERSISTENT STORAGE ---
-DATA_DIR = Path("recruitment_data")
-ROLES_FILE = DATA_DIR / "roles.json"
-MEMORY_FILE = DATA_DIR / "analysis_memory.json"
-CHAT_HISTORY_FILE = DATA_DIR / "chat_history.json"
-RESULTS_FILE = DATA_DIR / "batch_results.json"
-
-# Buat direktori jika belum ada
-DATA_DIR.mkdir(exist_ok=True)
+# --- SUPABASE CONFIGURATION ---
+def get_supabase_client() -> Optional[Client]:
+    """Initialize Supabase client"""
+    if not SUPABASE_AVAILABLE:
+        return None
+    
+    supabase_url = st.session_state.get('supabase_url', '')
+    supabase_key = st.session_state.get('supabase_key', '')
+    
+    if not supabase_url or not supabase_key:
+        return None
+    
+    try:
+        return create_client(supabase_url, supabase_key)
+    except Exception as e:
+        logger.error(f"Failed to create Supabase client: {e}")
+        return None
 
 
 # --- 1. DICTIONARY UNTUK TEKS DWIBASA (BAHASA INDONESIA & INGGRIS) ---
@@ -67,6 +83,16 @@ TEXTS = {
     'ocr_settings': {'id': "Pengaturan OCR", 'en': "OCR Settings"},
     'enable_ocr': {'id': "Aktifkan OCR untuk PDF Gambar", 'en': "Enable OCR for Image PDFs"},
     'ocr_help': {'id': "OCR akan memindai PDF berbasis gambar untuk ekstraksi teks yang lebih baik", 'en': "OCR will scan image-based PDFs for better text extraction"},
+    
+    # Supabase Settings
+    'supabase_settings': {'id': "Pengaturan Supabase", 'en': "Supabase Settings"},
+    'supabase_url_label': {'id': "Supabase URL", 'en': "Supabase URL"},
+    'supabase_url_help': {'id': "URL project Supabase Anda", 'en': "Your Supabase project URL"},
+    'supabase_key_label': {'id': "Supabase Anon Key", 'en': "Supabase Anon Key"},
+    'supabase_key_help': {'id': "Anon/Public key dari project Supabase Anda", 'en': "Anon/Public key from your Supabase project"},
+    'supabase_status': {'id': "Status Koneksi", 'en': "Connection Status"},
+    'supabase_connected': {'id': "✅ Terhubung ke Supabase", 'en': "✅ Connected to Supabase"},
+    'supabase_not_configured': {'id': "⚠️ Supabase belum dikonfigurasi", 'en': "⚠️ Supabase not configured"},
     
     # Role Management - TEMA NATURE
     'tab_manage_roles': {'id': "🌱 Kelola Posisi", 'en': "🌱 Manage Roles"},
@@ -92,8 +118,8 @@ TEXTS = {
     'import_roles_button': {'id': "🌲 Import Posisi (JSON)", 'en': "🌲 Import Roles (JSON)"},
     'import_roles_success': {'id': "✅ Posisi berhasil diimport!", 'en': "✅ Roles imported successfully!"},
     'import_roles_error': {'id': "❌ Gagal import posisi. Pastikan format JSON benar.", 'en': "❌ Failed to import roles. Ensure JSON format is correct."},
-    'storage_info': {'id': "💚 Data disimpan secara otomatis", 'en': "💚 Data saved automatically"},
-    'data_loaded': {'id': "✅ Data berhasil dimuat dari penyimpanan", 'en': "✅ Data loaded from storage successfully"},
+    'storage_info': {'id': "💚 Data disimpan otomatis ke Supabase", 'en': "💚 Data saved automatically to Supabase"},
+    'data_loaded': {'id': "✅ Data berhasil dimuat dari Supabase", 'en': "✅ Data loaded from Supabase successfully"},
     'clear_all_data': {'id': "🍂 Hapus History & Hasil Analisa", 'en': "🍂 Clear History & Analysis Results"},
     'confirm_clear_data': {'id': "Apakah Anda yakin ingin menghapus history chat dan hasil analisa? (Data posisi akan tetap tersimpan)", 'en': "Are you sure you want to delete chat history and analysis results? (Position data will remain saved)"},
     'all_data_cleared': {'id': "✅ History chat dan hasil analisa berhasil dihapus", 'en': "✅ Chat history and analysis results cleared successfully"},
@@ -166,90 +192,184 @@ def get_text(key: str) -> str:
     return TEXTS.get(key, {}).get(lang, key)
 
 
-# --- 2. FUNGSI PENYIMPANAN DATA (PERSISTENT) ---
-def load_roles() -> dict:
-    """Load roles from disk."""
-    try:
-        if ROLES_FILE.exists():
-            with open(ROLES_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-    except Exception as e:
-        logger.error(f"Error loading roles: {e}")
-    return {}
+# --- 2. SUPABASE DATABASE FUNCTIONS ---
 
-def save_roles(roles: dict):
-    """Save roles to disk."""
+def load_roles() -> Dict[str, str]:
+    """Load roles from Supabase"""
+    supabase = get_supabase_client()
+    if not supabase:
+        return {}
+    
     try:
-        with open(ROLES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(roles, f, ensure_ascii=False, indent=2)
+        response = supabase.table('recruitment_roles').select('*').execute()
+        roles = {}
+        for item in response.data:
+            roles[item['role_id']] = item['requirements']
+        return roles
     except Exception as e:
-        logger.error(f"Error saving roles: {e}")
+        logger.error(f"Error loading roles from Supabase: {e}")
+        return {}
 
-def load_analysis_memory() -> list:
-    """Load analysis memory from disk."""
-    try:
-        if MEMORY_FILE.exists():
-            with open(MEMORY_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-    except Exception as e:
-        logger.error(f"Error loading memory: {e}")
-    return []
 
-def save_analysis_memory(memory: list):
-    """Save analysis memory to disk."""
+def save_roles(roles: Dict[str, str]) -> bool:
+    """Save roles to Supabase"""
+    supabase = get_supabase_client()
+    if not supabase:
+        return False
+    
     try:
-        with open(MEMORY_FILE, 'w', encoding='utf-8') as f:
-            json.dump(memory, f, ensure_ascii=False, indent=2)
+        # Delete all existing roles first
+        supabase.table('recruitment_roles').delete().neq('role_id', '').execute()
+        
+        # Insert new roles
+        for role_id, requirements in roles.items():
+            supabase.table('recruitment_roles').upsert({
+                'role_id': role_id,
+                'requirements': requirements,
+                'updated_at': datetime.now().isoformat()
+            }, on_conflict='role_id').execute()
+        
+        return True
     except Exception as e:
-        logger.error(f"Error saving memory: {e}")
+        logger.error(f"Error saving roles to Supabase: {e}")
+        return False
 
-def load_chat_history() -> list:
-    """Load chat history from disk."""
-    try:
-        if CHAT_HISTORY_FILE.exists():
-            with open(CHAT_HISTORY_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-    except Exception as e:
-        logger.error(f"Error loading chat history: {e}")
-    return []
 
-def save_chat_history(history: list):
-    """Save chat history to disk."""
+def load_analysis_memory() -> Dict[str, Dict]:
+    """Load analysis memory from Supabase"""
+    supabase = get_supabase_client()
+    if not supabase:
+        return {}
+    
     try:
-        with open(CHAT_HISTORY_FILE, 'w', encoding='utf-8') as f:
-            json.dump(history, f, ensure_ascii=False, indent=2)
+        response = supabase.table('analysis_memory').select('*').execute()
+        memory = {}
+        for item in response.data:
+            memory[item['candidate_id']] = {
+                'analysis': item['analysis'],
+                'role': item['role'],
+                'timestamp': item['timestamp']
+            }
+        return memory
     except Exception as e:
-        logger.error(f"Error saving chat history: {e}")
+        logger.error(f"Error loading analysis memory from Supabase: {e}")
+        return {}
 
-def load_results_from_disk() -> list:
-    """Load batch results from disk."""
-    try:
-        if RESULTS_FILE.exists():
-            with open(RESULTS_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-    except Exception as e:
-        logger.error(f"Error loading results: {e}")
-    return []
 
-def save_results_to_disk():
-    """Save batch results to disk."""
+def save_analysis_memory(memory: Dict[str, Dict]) -> bool:
+    """Save analysis memory to Supabase"""
+    supabase = get_supabase_client()
+    if not supabase:
+        return False
+    
     try:
-        with open(RESULTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(st.session_state.get('batch_results', []), f, ensure_ascii=False, indent=2)
+        # Delete all existing memory first
+        supabase.table('analysis_memory').delete().neq('candidate_id', '').execute()
+        
+        # Insert new memory
+        for candidate_id, data in memory.items():
+            supabase.table('analysis_memory').upsert({
+                'candidate_id': candidate_id,
+                'analysis': data['analysis'],
+                'role': data['role'],
+                'timestamp': data['timestamp']
+            }, on_conflict='candidate_id').execute()
+        
+        return True
     except Exception as e:
-        logger.error(f"Error saving results: {e}")
+        logger.error(f"Error saving analysis memory to Supabase: {e}")
+        return False
+
+
+def load_chat_history() -> List[Dict]:
+    """Load chat history from Supabase"""
+    supabase = get_supabase_client()
+    if not supabase:
+        return []
+    
+    try:
+        response = supabase.table('chat_history').select('*').order('timestamp').execute()
+        return [{'role': item['role'], 'content': item['content']} for item in response.data]
+    except Exception as e:
+        logger.error(f"Error loading chat history from Supabase: {e}")
+        return []
+
+
+def save_chat_history(history: List[Dict]) -> bool:
+    """Save chat history to Supabase"""
+    supabase = get_supabase_client()
+    if not supabase:
+        return False
+    
+    try:
+        # Delete all existing history first
+        supabase.table('chat_history').delete().neq('id', 0).execute()
+        
+        # Insert new history
+        for msg in history:
+            supabase.table('chat_history').insert({
+                'role': msg['role'],
+                'content': msg['content'],
+                'timestamp': datetime.now().isoformat()
+            }).execute()
+        
+        return True
+    except Exception as e:
+        logger.error(f"Error saving chat history to Supabase: {e}")
+        return False
+
+
+def load_results_from_disk() -> List[Dict]:
+    """Load batch results from Supabase"""
+    supabase = get_supabase_client()
+    if not supabase:
+        return []
+    
+    try:
+        response = supabase.table('batch_results').select('*').execute()
+        return [json.loads(item['result_data']) for item in response.data]
+    except Exception as e:
+        logger.error(f"Error loading results from Supabase: {e}")
+        return []
+
+
+def save_results_to_disk() -> bool:
+    """Save batch results to Supabase"""
+    supabase = get_supabase_client()
+    if not supabase:
+        return False
+    
+    try:
+        results = st.session_state.get('batch_results', [])
+        
+        # Delete all existing results first
+        supabase.table('batch_results').delete().neq('id', 0).execute()
+        
+        # Insert new results
+        for idx, result in enumerate(results):
+            supabase.table('batch_results').insert({
+                'result_id': str(idx),
+                'result_data': json.dumps(result),
+                'updated_at': datetime.now().isoformat()
+            }).execute()
+        
+        return True
+    except Exception as e:
+        logger.error(f"Error saving results to Supabase: {e}")
+        return False
+
 
 def clear_all_persistent_data():
-    """Clear analysis memory, chat history, and batch results. Keep roles data intact."""
+    """Clear analysis memory, chat history, and batch results from Supabase. Keep roles data intact."""
+    supabase = get_supabase_client()
+    if not supabase:
+        return False
+    
     try:
-        files_deleted = 0
-        # Only delete MEMORY_FILE, CHAT_HISTORY_FILE, and RESULTS_FILE
-        # ROLES_FILE is preserved so users don't have to re-add positions
-        for file in [MEMORY_FILE, CHAT_HISTORY_FILE, RESULTS_FILE]:
-            if file.exists():
-                file.unlink()
-                files_deleted += 1
-                logger.info(f"Deleted: {file}")
+        # Delete from Supabase tables (except roles)
+        supabase.table('analysis_memory').delete().neq('candidate_id', '').execute()
+        supabase.table('chat_history').delete().neq('id', 0).execute()
+        supabase.table('batch_results').delete().neq('id', 0).execute()
         
         # Clear session state
         keys_to_clear = ['batch_results', 'chat_history']
@@ -257,11 +377,12 @@ def clear_all_persistent_data():
             if key in st.session_state:
                 st.session_state[key] = []
         
-        logger.info(f"Successfully cleared {files_deleted} data files (roles preserved)")
+        logger.info("Successfully cleared data from Supabase (roles preserved)")
         return True
     except Exception as e:
         logger.error(f"Error clearing data: {e}")
         return False
+
 
 def export_all_data() -> dict:
     """Export all data as JSON for backup."""
@@ -272,6 +393,7 @@ def export_all_data() -> dict:
         'batch_results': load_results_from_disk(),
         'export_date': datetime.now().isoformat()
     }
+
 
 def import_all_data(data: dict) -> bool:
     """Import all data from backup JSON."""
@@ -2216,13 +2338,47 @@ def main():
                 help=get_text('ocr_help'),
                 key='enable_ocr'
             )
+        
+        # Supabase Settings
+        with st.expander(get_text('supabase_settings'), expanded=True):
+            supabase_url = st.text_input(
+                get_text('supabase_url_label'),
+                value=st.session_state.get('supabase_url', ''),
+                help=get_text('supabase_url_help'),
+                key='supabase_url_input',
+                placeholder='https://xyzcompany.supabase.co'
+            )
+            st.session_state['supabase_url'] = supabase_url
+            
+            supabase_key = st.text_input(
+                get_text('supabase_key_label'),
+                type="password",
+                value=st.session_state.get('supabase_key', ''),
+                help=get_text('supabase_key_help'),
+                key='supabase_key_input'
+            )
+            st.session_state['supabase_key'] = supabase_key
+            
+            # Connection status
+            st.markdown(f"**{get_text('supabase_status')}:**")
+            if get_supabase_client():
+                st.success(get_text('supabase_connected'))
+            else:
+                st.warning(get_text('supabase_not_configured'))
     
     # Main content
     st.title(get_text('app_title'))
     
     # Check configuration
+    missing_configs = []
     if not st.session_state.get('openai_api_key'):
-        st.warning(f"{get_text('warning_missing_config')} {get_text('api_key_label')}")
+        missing_configs.append(get_text('api_key_label'))
+    if not get_supabase_client():
+        missing_configs.append("Supabase")
+    
+    if missing_configs:
+        st.warning(f"{get_text('warning_missing_config')} {', '.join(missing_configs)}")
+        st.info("👉 Konfigurasi di sidebar untuk mulai menggunakan aplikasi / Configure in sidebar to start using the app")
         return
     
     # Main tabs
