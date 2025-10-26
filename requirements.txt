@@ -14,3 +14,6 @@ Pillow>=10.0.0
 
 # Date/Time Utilities (NEW!)
 python-dateutil>=2.8.2
+
+# Database - Supabase
+supabase>=2.0.0
