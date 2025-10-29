@@ -13,7 +13,7 @@ from pathlib import Path
 # KRITIS: Streamlit harus diimpor di global scope
 import streamlit as st 
 from phi.agent import Agent
-from phi.model.openai import OpenAIChat
+from phi.model.google import Gemini  # CHANGED: Import Gemini instead of OpenAI
 from phi.utils.log import logger
 
 # Import Supabase
@@ -74,9 +74,9 @@ TEXTS = {
     # Sidebar & Konfigurasi - TEMA NATURE
     'app_title': {'id': "PT Srikandi Mitra Karya - Sistem Rekrutmen AI", 'en': "PT Srikandi Mitra Karya - AI Recruitment System"},
     'config_header': {'id': "🌿 Konfigurasi", 'en': "🌿 Configuration"},
-    'openai_settings': {'id': "Pengaturan OpenAI", 'en': "OpenAI Settings"},
-    'api_key_label': {'id': "Kunci API OpenAI", 'en': "OpenAI API Key"},
-    'api_key_help': {'id': "Dapatkan kunci API Anda dari platform.openai.com", 'en': "Get your API key from platform.openai.com"},
+    'gemini_settings': {'id': "Pengaturan Google Gemini", 'en': "Google Gemini Settings"},  # CHANGED
+    'api_key_label': {'id': "Kunci API Google", 'en': "Google API Key"},  # CHANGED
+    'api_key_help': {'id': "Dapatkan kunci API Anda dari aistudio.google.com", 'en': "Get your API key from aistudio.google.com"},  # CHANGED
     'warning_missing_config': {'id': "⚠️ Harap konfigurasikan hal berikut di sidebar: ", 'en': "⚠️ Please configure the following in the sidebar: "},
     'language_select': {'id': "Pilih Bahasa", 'en': "Select Language"},
     'reset_button': {'id': "🔄 Reset Aplikasi", 'en': "🔄 Reset Application"},
@@ -153,7 +153,7 @@ TEXTS = {
     'processing_complete': {'id': "Pemrosesan selesai!", 'en': "Processing complete!"},
     'error_processing': {'id': "⚠️ Kesalahan proses", 'en': "⚠️ Error processing"},
     'error_pdf_text': {'id': "Tidak dapat mengekstrak teks dari PDF", 'en': "Could not extract text from PDF"},
-    'error_api_key': {'id': "Kunci API OpenAI hilang atau tidak valid.", 'en': "OpenAI API Key is missing or invalid."},
+    'error_api_key': {'id': "Kunci API Google hilang atau tidak valid.", 'en': "Google API Key is missing or invalid."},  # CHANGED
     'summary_header': {'id': "🌿 Ringkasan Pemrosesan", 'en': "🌿 Processing Summary"},
     'total_processed': {'id': "Total Diproses", 'en': "Total Processed"},
     'selected_label': {'id': "Direkomendasikan ✅", 'en': "Recommended ✅"},
@@ -805,15 +805,15 @@ def extract_text_with_ocr(pdf_file) -> Tuple[str, bool]:
 # --- 5. FUNGSI UNTUK MEMBUAT AGENT ---
 def create_resume_analyzer() -> Optional[Agent]:
     """Create resume analyzer agent with API key from session state."""
-    api_key = st.session_state.get('openai_api_key')
+    api_key = st.session_state.get('google_api_key')  # CHANGED
     
     if not api_key:
         return None
     
     try:
         return Agent(
-            model=OpenAIChat(
-                id="gpt-4o-mini",
+            model=Gemini(
+                id="gemini-2.0-flash-exp",  # CHANGED: Using Gemini 2.0 Flash
                 api_key=api_key
             ),
             markdown=False,
@@ -1268,7 +1268,7 @@ def process_excel_cv_links(excel_file, role: str, max_cvs: int = 50) -> List[Dic
                     save_results_to_disk()
                     logger.info(f"Progress saved: {processed_count}/{total_cvs} CVs processed")
                 
-                # PERBAIKAN: Rate limiting - delay 1 detik antar CV untuk avoid OpenAI rate limit & reduce load
+                # PERBAIKAN: Rate limiting - delay 1 detik antar CV untuk avoid API rate limit & reduce load
                 if idx < total_cvs - 1:  # Tidak perlu delay di CV terakhir
                     time.sleep(1)
                 
@@ -1436,7 +1436,7 @@ def display_logo_in_sidebar(logo_path: str = None):
 # --- 10. CHATBOT INTERFACE ---
 def create_chatbot() -> Optional[Agent]:
     """Create chatbot agent with context."""
-    api_key = st.session_state.get('openai_api_key')
+    api_key = st.session_state.get('google_api_key')  # CHANGED
     
     if not api_key:
         return None
@@ -1459,8 +1459,8 @@ def create_chatbot() -> Optional[Agent]:
     
     try:
         return Agent(
-            model=OpenAIChat(
-                id="gpt-4o-mini",
+            model=Gemini(
+                id="gemini-2.0-flash-exp",  # CHANGED: Using Gemini 2.0 Flash
                 api_key=api_key
             ),
             markdown=True,
@@ -2319,16 +2319,16 @@ def main():
             on_change=set_language
         )
         
-        # OpenAI Settings
-        with st.expander(get_text('openai_settings'), expanded=True):
+        # Google Gemini Settings - CHANGED
+        with st.expander(get_text('gemini_settings'), expanded=True):
             api_key = st.text_input(
                 get_text('api_key_label'),
                 type="password",
-                value=st.session_state.get('openai_api_key', ''),
+                value=st.session_state.get('google_api_key', ''),
                 help=get_text('api_key_help'),
-                key='openai_api_key_input'
+                key='google_api_key_input'
             )
-            st.session_state['openai_api_key'] = api_key
+            st.session_state['google_api_key'] = api_key
         
         # OCR Settings
         with st.expander(get_text('ocr_settings'), expanded=False):
@@ -2369,9 +2369,9 @@ def main():
     # Main content
     st.title(get_text('app_title'))
     
-    # Check configuration
+    # Check configuration - CHANGED
     missing_configs = []
-    if not st.session_state.get('openai_api_key'):
+    if not st.session_state.get('google_api_key'):
         missing_configs.append(get_text('api_key_label'))
     if not get_supabase_client():
         missing_configs.append("Supabase")
