@@ -1,19 +1,26 @@
-# Core Dependencies
+# Core Framework
 streamlit>=1.31.0
+
+# AI Framework & Google Gemini
 phidata>=2.4.0
-openai>=1.12.0
+google-generativeai>=0.8.0
+
+# PDF Processing
 PyPDF2>=3.0.1
+
+# Data Processing & Excel
 pandas>=2.2.0
 openpyxl>=3.1.2
+
+# HTTP Requests
 requests>=2.31.0
-google-generativeai
 
 # OCR Support for Scanned PDFs
 pdf2image>=1.16.0
 pytesseract>=0.3.10
 Pillow>=10.0.0
 
-# Date/Time Utilities (NEW!)
+# Date/Time Utilities
 python-dateutil>=2.8.2
 
 # Database - Supabase
