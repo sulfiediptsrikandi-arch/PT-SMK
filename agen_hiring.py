@@ -772,12 +772,12 @@ def extract_text_with_ocr(pdf_file) -> Tuple[str, bool]:
                 logger.error("PDF file is empty for OCR")
                 return text, False
             
-            # PERBAIKAN CRITICAL: Batasi ukuran file untuk OCR (max 5 MB)
+            # PERBAIKAN CRITICAL: Batasi ukuran file untuk OCR (max 10 MB)
             file_size_mb = len(pdf_bytes) / 1_000_000
-            MAX_OCR_FILE_SIZE = 5_000_000  # 5 MB
+            MAX_OCR_FILE_SIZE = 10_000_000  # 10 MB
             
             if len(pdf_bytes) > MAX_OCR_FILE_SIZE:
-                logger.warning(f"PDF too large for OCR: {file_size_mb:.1f} MB > 5 MB")
+                logger.warning(f"PDF too large for OCR: {file_size_mb:.1f} MB > 10 MB")
                 st.warning(f"⚠️ PDF terlalu besar ({file_size_mb:.1f} MB) untuk OCR. Menggunakan ekstraksi normal.")
                 # Reset pointer dan return hasil ekstraksi normal
                 try:
@@ -1371,7 +1371,7 @@ def process_single_candidate(resume_file, role: str) -> dict:
     }
     
     try:
-        if st.session_state.get('enable_ocr', False):
+        if st.session_state.get('enable_ocr', True):
             text, ocr_used = extract_text_with_ocr(resume_file)
             result['ocr_used'] = ocr_used
         else:
@@ -2384,6 +2384,8 @@ def main():
         st.session_state['batch_results'] = load_results_from_disk()
     if 'uploader_key' not in st.session_state:
         st.session_state['uploader_key'] = str(uuid.uuid4())
+    if 'enable_ocr' not in st.session_state:
+        st.session_state['enable_ocr'] = True  # OCR aktif secara default
     
     # Sidebar
     with st.sidebar:
@@ -2417,7 +2419,7 @@ def main():
         with st.expander(get_text('ocr_settings'), expanded=False):
             st.checkbox(
                 get_text('enable_ocr'),
-                value=st.session_state.get('enable_ocr', False),
+                value=st.session_state.get('enable_ocr', True),
                 help=get_text('ocr_help'),
                 key='enable_ocr'
             )
