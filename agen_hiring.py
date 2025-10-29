@@ -813,7 +813,7 @@ def create_resume_analyzer() -> Optional[Agent]:
     try:
         return Agent(
             model=Gemini(
-                id="gemini-1.5-flash",  # FIXED: Using stable Gemini 1.5 Flash
+                id="gemini-2.0-flash-exp",  # Using Gemini 2.0 Flash (latest version)
                 api_key=api_key
             ),
             markdown=False,
@@ -1472,7 +1472,7 @@ def create_chatbot() -> Optional[Agent]:
     try:
         return Agent(
             model=Gemini(
-                id="gemini-1.5-flash",  # FIXED: Using stable Gemini 1.5 Flash
+                id="gemini-2.0-flash-exp",  # Using Gemini 2.0 Flash (latest version)
                 api_key=api_key
             ),
             markdown=True,
