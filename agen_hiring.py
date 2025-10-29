@@ -702,18 +702,32 @@ def save_to_memory(result: dict):
             logger.warning(f"Status inconsistency detected for {result.get('candidate_name', 'N/A')}: status={current_status}, match={match_pct}%. Correcting to {expected_status}.")
             current_status = expected_status
     
-    memory.append({
-        'timestamp': datetime.now().isoformat(),
-        'filename': result.get('filename', 'unknown'),
-        'candidate_name': result.get('candidate_name', 'N/A'),
+    # CRITICAL FIX: memory is a Dict, not a List - use unique key
+    # Generate unique candidate_id from name + timestamp
+    candidate_name = result.get('candidate_name', 'N/A')
+    timestamp = datetime.now().isoformat()
+    candidate_id = f"{candidate_name}_{timestamp}"
+    
+    # Store in dict format
+    memory[candidate_id] = {
+        'analysis': json.dumps({
+            'filename': result.get('filename', 'unknown'),
+            'candidate_name': candidate_name,
+            'role': result.get('role', 'unknown'),
+            'status': current_status,
+            'match_percentage': match_pct,
+            'feedback': result.get('feedback', ''),
+        }),
         'role': result.get('role', 'unknown'),
-        'status': current_status,
-        'match_percentage': match_pct,
-        'feedback': result.get('feedback', ''),
-    })
-    # Keep only last 100 entries
+        'timestamp': timestamp
+    }
+    
+    # Keep only last 100 entries (remove oldest if exceeded)
     if len(memory) > 100:
-        memory = memory[-100:]
+        # Sort by timestamp and keep newest 100
+        sorted_items = sorted(memory.items(), key=lambda x: x[1]['timestamp'], reverse=True)
+        memory = dict(sorted_items[:100])
+    
     save_analysis_memory(memory)
 
 
@@ -1499,8 +1513,21 @@ def create_chatbot() -> Optional[Agent]:
     
     if memory:
         context += f"\nRecent analysis results ({len(memory)} candidates analyzed):\n"
-        for item in memory[-10:]:  # Last 10
-            context += f"- {item['candidate_name']} ({item['role']}): {item['status']} - {item['match_percentage']}%\n"
+        # FIXED: memory is now a Dict, not a List - need to iterate properly
+        # Sort by timestamp and get last 10
+        sorted_memory = sorted(memory.items(), key=lambda x: x[1]['timestamp'], reverse=True)[:10]
+        for candidate_id, data in sorted_memory:
+            try:
+                # Parse analysis JSON
+                analysis = json.loads(data['analysis'])
+                candidate_name = analysis.get('candidate_name', 'N/A')
+                role = analysis.get('role', 'unknown')
+                status = analysis.get('status', 'unknown')
+                match_pct = analysis.get('match_percentage', 0)
+                context += f"- {candidate_name} ({role}): {status} - {match_pct}%\n"
+            except:
+                # Skip if parsing fails
+                continue
     
     try:
         return Agent(
