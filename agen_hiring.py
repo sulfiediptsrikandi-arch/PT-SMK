@@ -685,13 +685,30 @@ def validate_analysis_result(result: dict) -> bool:
 def save_to_memory(result: dict):
     """Save analysis result to memory for chatbot context."""
     memory = load_analysis_memory()
+    
+    # CRITICAL FIX: Validate and ensure status consistency before saving
+    match_pct = result.get('match_percentage', 0)
+    current_status = result.get('status', 'unknown')
+    
+    # Validate status consistency with match_percentage
+    expected_status = 'selected' if match_pct >= 70 else 'rejected'
+    if current_status not in ['selected', 'rejected', 'error', 'pending']:
+        # Invalid status, correct it
+        current_status = expected_status
+        logger.warning(f"Corrected invalid status for {result.get('candidate_name', 'N/A')}: {current_status}")
+    elif current_status in ['selected', 'rejected']:
+        # Validate consistency
+        if (current_status == 'selected' and match_pct < 70) or (current_status == 'rejected' and match_pct >= 70):
+            logger.warning(f"Status inconsistency detected for {result.get('candidate_name', 'N/A')}: status={current_status}, match={match_pct}%. Correcting to {expected_status}.")
+            current_status = expected_status
+    
     memory.append({
         'timestamp': datetime.now().isoformat(),
         'filename': result.get('filename', 'unknown'),
         'candidate_name': result.get('candidate_name', 'N/A'),
         'role': result.get('role', 'unknown'),
-        'status': result.get('status', 'unknown'),
-        'match_percentage': result.get('match_percentage', 0),
+        'status': current_status,
+        'match_percentage': match_pct,
         'feedback': result.get('feedback', ''),
     })
     # Keep only last 100 entries
@@ -1006,15 +1023,19 @@ Analyze now and return ONLY the JSON:"""
                 result["missing_skills"] = [s for s in result["missing_skills"] 
                                            if s.lower().strip() not in overlap]
             
-            # Determine selection based on match percentage
-            if result["match_percentage"] >= 70:
+            # CRITICAL FIX: Determine selection STRICTLY based on match percentage
+            # This ensures consistent status regardless of AI response
+            final_match_percentage = result["match_percentage"]
+            if final_match_percentage >= 70:
                 result["selected"] = True
+                selected_status = True
             else:
                 result["selected"] = False
+                selected_status = False
             
-            logger.info(f"Analysis successful: {result['candidate_name']} - {'Selected' if result['selected'] else 'Rejected'} ({result['match_percentage']}%)")
+            logger.info(f"Analysis successful: {result['candidate_name']} - {'SELECTED' if selected_status else 'REJECTED'} ({final_match_percentage}%)")
             
-            return result["selected"], result["feedback"], result
+            return selected_status, result["feedback"], result
             
         except Exception as e:
             last_error = e
@@ -1356,13 +1377,25 @@ def process_single_candidate(resume_file, role: str) -> dict:
         
         selected, feedback, details = analyze_resume(text, role, analyzer)
         
+        # Get match percentage to ensure correct status
+        final_match_percentage = details.get('match_percentage', 0)
+        
+        # CRITICAL FIX: Ensure status is ALWAYS consistent with match_percentage
+        # Override selected if there's any inconsistency
+        if final_match_percentage >= 70:
+            selected = True
+            final_status = 'selected'
+        else:
+            selected = False
+            final_status = 'rejected'
+        
         result.update({
             'selected': selected,
             'feedback': feedback,
-            'status': 'selected' if selected else 'rejected',
+            'status': final_status,
             'candidate_name': details.get('candidate_name', 'N/A'),
             'candidate_phone': details.get('candidate_phone', 'N/A'),
-            'match_percentage': details.get('match_percentage', 0),
+            'match_percentage': final_match_percentage,
         })
         
         if 'matching_skills' in details:
