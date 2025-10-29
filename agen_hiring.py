@@ -13,7 +13,7 @@ from pathlib import Path
 # KRITIS: Streamlit harus diimpor di global scope
 import streamlit as st 
 from phi.agent import Agent
-from phi.model.google import Gemini  # CHANGED: Import Gemini instead of OpenAI
+from phi.model.google import Gemini
 from phi.utils.log import logger
 
 # Import Supabase
@@ -74,9 +74,9 @@ TEXTS = {
     # Sidebar & Konfigurasi - TEMA NATURE
     'app_title': {'id': "PT Srikandi Mitra Karya - Sistem Rekrutmen AI", 'en': "PT Srikandi Mitra Karya - AI Recruitment System"},
     'config_header': {'id': "🌿 Konfigurasi", 'en': "🌿 Configuration"},
-    'gemini_settings': {'id': "Pengaturan Google Gemini", 'en': "Google Gemini Settings"},  # CHANGED
-    'api_key_label': {'id': "Kunci API Google", 'en': "Google API Key"},  # CHANGED
-    'api_key_help': {'id': "Dapatkan kunci API Anda dari aistudio.google.com", 'en': "Get your API key from aistudio.google.com"},  # CHANGED
+    'gemini_settings': {'id': "Pengaturan Google Gemini", 'en': "Google Gemini Settings"},
+    'api_key_label': {'id': "Kunci API Google", 'en': "Google API Key"},
+    'api_key_help': {'id': "Dapatkan kunci API Anda dari aistudio.google.com", 'en': "Get your API key from aistudio.google.com"},
     'warning_missing_config': {'id': "⚠️ Harap konfigurasikan hal berikut di sidebar: ", 'en': "⚠️ Please configure the following in the sidebar: "},
     'language_select': {'id': "Pilih Bahasa", 'en': "Select Language"},
     'reset_button': {'id': "🔄 Reset Aplikasi", 'en': "🔄 Reset Application"},
@@ -153,7 +153,7 @@ TEXTS = {
     'processing_complete': {'id': "Pemrosesan selesai!", 'en': "Processing complete!"},
     'error_processing': {'id': "⚠️ Kesalahan proses", 'en': "⚠️ Error processing"},
     'error_pdf_text': {'id': "Tidak dapat mengekstrak teks dari PDF", 'en': "Could not extract text from PDF"},
-    'error_api_key': {'id': "Kunci API Google hilang atau tidak valid.", 'en': "Google API Key is missing or invalid."},  # CHANGED
+    'error_api_key': {'id': "Kunci API Google hilang atau tidak valid.", 'en': "Google API Key is missing or invalid."},
     'summary_header': {'id': "🌿 Ringkasan Pemrosesan", 'en': "🌿 Processing Summary"},
     'total_processed': {'id': "Total Diproses", 'en': "Total Processed"},
     'selected_label': {'id': "Direkomendasikan ✅", 'en': "Recommended ✅"},
@@ -805,7 +805,7 @@ def extract_text_with_ocr(pdf_file) -> Tuple[str, bool]:
 # --- 5. FUNGSI UNTUK MEMBUAT AGENT ---
 def create_resume_analyzer() -> Optional[Agent]:
     """Create resume analyzer agent with API key from session state."""
-    api_key = st.session_state.get('google_api_key')  # CHANGED
+    api_key = st.session_state.get('google_api_key')
     
     if not api_key:
         return None
@@ -813,13 +813,15 @@ def create_resume_analyzer() -> Optional[Agent]:
     try:
         return Agent(
             model=Gemini(
-                id="gemini-2.0-flash-exp",  # CHANGED: Using Gemini 2.0 Flash
+                id="gemini-1.5-flash",  # FIXED: Using stable Gemini 1.5 Flash
                 api_key=api_key
             ),
             markdown=False,
+            show_tool_calls=False,
         )
     except Exception as e:
         logger.error(f"Error creating analyzer: {e}")
+        st.error(f"Error creating AI analyzer: {str(e)}")
         return None
 
 
@@ -955,14 +957,24 @@ Analyze now and return ONLY the JSON:"""
             
             response = analyzer.run(prompt)
             
+            # FIXED: Improved response handling for Gemini
             msg = None
-            for m in response.messages:
-                if m.role == 'assistant' and m.content:
-                    msg = m.content
-                    break
+            if hasattr(response, 'content') and response.content:
+                msg = response.content
+            elif hasattr(response, 'messages') and response.messages:
+                for m in response.messages:
+                    if hasattr(m, 'role') and m.role == 'assistant':
+                        if hasattr(m, 'content') and m.content:
+                            msg = m.content
+                            break
+                    # Fallback: try to get content directly if role not set
+                    elif hasattr(m, 'content') and m.content:
+                        msg = m.content
+                        break
             
             if not msg:
-                raise ValueError("No response content from AI")
+                logger.error(f"No content in response. Response type: {type(response)}, Response: {response}")
+                raise ValueError("No response content from AI. Please check your API key and try again.")
             
             result = extract_json_from_response(msg)
             
@@ -1436,7 +1448,7 @@ def display_logo_in_sidebar(logo_path: str = None):
 # --- 10. CHATBOT INTERFACE ---
 def create_chatbot() -> Optional[Agent]:
     """Create chatbot agent with context."""
-    api_key = st.session_state.get('google_api_key')  # CHANGED
+    api_key = st.session_state.get('google_api_key')
     
     if not api_key:
         return None
@@ -1460,10 +1472,11 @@ def create_chatbot() -> Optional[Agent]:
     try:
         return Agent(
             model=Gemini(
-                id="gemini-2.0-flash-exp",  # CHANGED: Using Gemini 2.0 Flash
+                id="gemini-1.5-flash",  # FIXED: Using stable Gemini 1.5 Flash
                 api_key=api_key
             ),
             markdown=True,
+            show_tool_calls=False,
             instructions=[
                 context,
                 "Always respond in the same language as the user's question.",
@@ -1473,6 +1486,7 @@ def create_chatbot() -> Optional[Agent]:
         )
     except Exception as e:
         logger.error(f"Error creating chatbot: {e}")
+        st.error(f"Error creating chatbot: {str(e)}")
         return None
 
 def display_chatbot_interface():
@@ -1512,18 +1526,27 @@ def display_chatbot_interface():
                     try:
                         response = chatbot.run(prompt)
                         
+                        # FIXED: Improved response handling for Gemini
                         bot_message = None
-                        for msg in response.messages:
-                            if msg.role == 'assistant' and msg.content:
-                                bot_message = msg.content
-                                break
+                        if hasattr(response, 'content') and response.content:
+                            bot_message = response.content
+                        elif hasattr(response, 'messages') and response.messages:
+                            for msg in response.messages:
+                                if hasattr(msg, 'role') and msg.role == 'assistant':
+                                    if hasattr(msg, 'content') and msg.content:
+                                        bot_message = msg.content
+                                        break
+                                elif hasattr(msg, 'content') and msg.content:
+                                    bot_message = msg.content
+                                    break
                         
                         if bot_message:
                             st.markdown(bot_message)
                             st.session_state.chat_history.append({"role": "assistant", "content": bot_message})
                             save_chat_history(st.session_state.chat_history)
                         else:
-                            st.error("Tidak ada respons dari AI")
+                            st.error("Tidak ada respons dari AI. Periksa kembali API Key Anda.")
+                            logger.error(f"No bot response. Response type: {type(response)}")
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
         else:
@@ -2319,7 +2342,7 @@ def main():
             on_change=set_language
         )
         
-        # Google Gemini Settings - CHANGED
+        # Google Gemini Settings
         with st.expander(get_text('gemini_settings'), expanded=True):
             api_key = st.text_input(
                 get_text('api_key_label'),
@@ -2369,7 +2392,7 @@ def main():
     # Main content
     st.title(get_text('app_title'))
     
-    # Check configuration - CHANGED
+    # Check configuration
     missing_configs = []
     if not st.session_state.get('google_api_key'):
         missing_configs.append(get_text('api_key_label'))
@@ -2576,7 +2599,6 @@ def main():
                         st.markdown("---")
                         
                         if st.button(get_text('download_all_cv'), type='primary', use_container_width=True):
-                            # PERBAIKAN: Tanpa st.spinner karena sudah ada progress bar di dalam fungsi
                             # Process up to 50 CVs
                             results = process_excel_cv_links(excel_file, role, max_cvs=50)
                             
@@ -2600,9 +2622,6 @@ def main():
                                 
                                 st.toast(summary, icon="✅")
                                 st.info(f"👉 {get_text('tab_results')} atau {get_text('tab_chatbot')}")
-                                
-                                # PERBAIKAN: HAPUS st.rerun() untuk menghindari timeout dan crash
-                                # User dapat manual pindah ke tab "Hasil & Ringkasan" untuk melihat hasil
                             else:
                                 st.error(get_text('no_valid_links'))
                     else:
